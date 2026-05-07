@@ -37,7 +37,7 @@ export default function App() {
         <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg,#0ea5e9,#06b6d4)', boxShadow: '0 0 16px rgba(14,165,233,0.4)' }}>
+              style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)', boxShadow: '0 0 16px rgba(99,102,241,0.4)' }}>
               <Link2 className="w-4 h-4 text-white" />
             </div>
             <div>

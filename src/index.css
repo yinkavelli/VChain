@@ -6,35 +6,35 @@
 
 /* ── Theme variables ────────────────────────────────────────────────── */
 :root {
-  /* Light mode */
-  --bg:           #eef2ff;
+  /* Light mode — light indigo/violet fintech */
+  --bg:           #f0f0ff;
   --bg-card:      #ffffff;
-  --bg-card-alt:  #f5f7ff;
-  --bg-header:    rgba(238,242,255,0.95);
-  --bg-nav:       rgba(238,242,255,0.97);
-  --text:         #0d1340;
-  --text-sub:     #3b4a7a;
-  --text-muted:   #6b7db3;
-  --border:       rgba(14,30,120,0.12);
-  --border-acc:   rgba(14,165,233,0.35);
-  --accent:       #0ea5e9;
-  --accent-glow:  rgba(14,165,233,0.25);
+  --bg-card-alt:  #f5f4ff;
+  --bg-header:    rgba(240,240,255,0.95);
+  --bg-nav:       rgba(240,240,255,0.97);
+  --text:         #0a0a20;
+  --text-sub:     #3b3a6b;
+  --text-muted:   #7c7aaa;
+  --border:       rgba(99,102,241,0.15);
+  --border-acc:   rgba(99,102,241,0.3);
+  --accent:       #6366f1;
+  --accent-glow:  rgba(99,102,241,0.25);
 }
 
 .dark {
-  /* Dark mode */
-  --bg:           #05050f;
-  --bg-card:      #0a0a1c;
-  --bg-card-alt:  #080c20;
-  --bg-header:    rgba(5,5,15,0.95);
-  --bg-nav:       rgba(5,5,15,0.97);
+  /* Dark mode — OChain premium fintech */
+  --bg:           #0a0a14;
+  --bg-card:      #0d0d20;
+  --bg-card-alt:  #0a0a18;
+  --bg-header:    rgba(10,10,20,0.95);
+  --bg-nav:       rgba(10,10,20,0.97);
   --text:         #e2e8f0;
   --text-sub:     #94a3b8;
   --text-muted:   #64748b;
-  --border:       rgba(14,165,233,0.1);
-  --border-acc:   rgba(14,165,233,0.25);
-  --accent:       #0ea5e9;
-  --accent-glow:  rgba(14,165,233,0.3);
+  --border:       rgba(99,102,241,0.15);
+  --border-acc:   rgba(99,102,241,0.25);
+  --accent:       #6366f1;
+  --accent-glow:  rgba(99,102,241,0.35);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */
