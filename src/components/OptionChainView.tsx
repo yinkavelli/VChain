@@ -100,17 +100,17 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
       {/* Expiry rolling picker */}
       {expiries.length > 0 && (
         <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,rgba(13,13,32,0.98) 100%)', padding: '1.5px' }}>
-          <div className="rounded-2xl px-4 py-3 flex items-center gap-4" style={{ background: 'linear-gradient(135deg,rgba(20,16,50,0.97) 0%,rgba(13,13,28,0.99) 100%)' }}>
-            <div className="flex-shrink-0 text-center min-w-[52px]">
+          <div className="rounded-2xl px-3 py-3 flex items-center gap-2 w-full" style={{ background: 'linear-gradient(135deg,rgba(20,16,50,0.97) 0%,rgba(13,13,28,0.99) 100%)' }}>
+            <div className="flex-shrink-0 text-center w-12">
               <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-indigo-400">Expiry</p>
-              <p className="text-xl font-bold font-mono text-white">{dte(activeExpiry)}</p>
+              <p className="text-lg font-bold font-mono text-white">{dte(activeExpiry)}</p>
               <p className="text-[9px] text-slate-500">away</p>
             </div>
-            <div className="w-px self-stretch" style={{ background: 'rgba(99,102,241,0.25)' }} />
-            <div className="flex-1 flex justify-center">
-              <RollingPicker items={expiries} selected={activeExpiry} onChange={setExpiry} formatLabel={fmtExpiry} width={190} />
+            <div className="w-px self-stretch flex-shrink-0" style={{ background: 'rgba(99,102,241,0.25)' }} />
+            <div className="flex-1 flex justify-center min-w-0">
+              <RollingPicker items={expiries} selected={activeExpiry} onChange={setExpiry} formatLabel={fmtExpiry} width={160} />
             </div>
-            <div className="flex-shrink-0 text-right min-w-[40px]">
+            <div className="flex-shrink-0 text-right w-8">
               <p className="text-[9px] text-slate-500">{expiries.length}</p>
               <p className="text-[9px] text-slate-500">dates</p>
             </div>
@@ -128,13 +128,13 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
         <div className="rounded-2xl border border-indigo-900/30 overflow-auto max-h-[62svh] bg-[#0d0d20] no-scrollbar">
           <div style={{ minWidth: 590 }}>
             {/* Header */}
-            <div className="flex border-b border-indigo-900/30 sticky top-0 z-20 bg-[#0a0a18]">
+            <div className="flex border-b border-indigo-900/30 sticky top-0 z-20" style={{ background: '#0a0a18', minWidth: 590 }}>
               <div style={{ width: 80, minWidth: 80 }}
                 className="sticky left-0 z-30 px-3 py-2.5 text-center border-r border-indigo-900/30 bg-indigo-950/40">
                 <div className="text-[10px] font-bold text-indigo-400">Strike</div>
               </div>
               {['Prev Close', 'Bid*', 'Ask*', 'IV', 'Δ Delta', 'θ Theta', 'Γ', 'ν Vega', 'OI'].map(h => (
-                <div key={h} style={{ width: 68, minWidth: 68 }} className="px-2 py-2.5">
+                <div key={h} style={{ width: 68, minWidth: 68, background: '#0a0a18' }} className="px-2 py-2.5">
                   <div className="text-[10px] font-semibold text-slate-500">{h}</div>
                 </div>
               ))}
