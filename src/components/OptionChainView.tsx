@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { useOptionChain, getExpiries, buildChainRows } from '../hooks/useOptionChain'
@@ -34,7 +34,8 @@ function fmtExpiry(e: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
 }
 function dte(e: string) {
-  return `${Math.round((new Date(e).getTime() - Date.now()) / 86_400_000)}d`
+  const days = Math.max(0, Math.round((new Date(e + 'T20:00:00Z').getTime() - Date.now()) / 86_400_000))
+  return `${days}d`
 }
 
 interface Props { ticker: string; spotPrice: number }
@@ -42,6 +43,9 @@ interface Props { ticker: string; spotPrice: number }
 export function OptionChainView({ ticker, spotPrice }: Props) {
   const [side, setSide]     = useState<'call' | 'put'>('call')
   const [expiry, setExpiry] = useState('')
+
+  // Reset expiry when ticker changes
+  useEffect(() => { setExpiry('') }, [ticker])
 
   const { data: contracts = [], isLoading } = useOptionChain(ticker, !!ticker)
   const { data: iv } = useTickerIV(ticker, spotPrice)
@@ -51,7 +55,8 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
   // Default to expiry closest to 10 DTE (ignore 0d expired ones)
   const defaultExpiry = useMemo(() => {
     if (!expiries.length) return ''
-    const valid = expiries.filter(e => Math.round((new Date(e).getTime() - Date.now()) / 86_400_000) > 0)
+    // Add 20 hours buffer so same-day expiry isn't filtered out in non-UTC timezones
+    const valid = expiries.filter(e => new Date(e + 'T20:00:00Z').getTime() > Date.now())
     if (!valid.length) return expiries[0]
     return valid.reduce((best, e) => {
       const dBest = Math.abs(Math.round((new Date(best).getTime() - Date.now()) / 86_400_000) - 10)

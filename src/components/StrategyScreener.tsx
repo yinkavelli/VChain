@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
-import { useStrategyScreener, type StrategyScreenResult } from '../hooks/useStrategyScreener'
+import { useStrategyScreener, type StrategyScreenResult, type IVStatsMap } from '../hooks/useStrategyScreener'
 import type { Thesis } from '../lib/strategyScorer'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 interface Props {
   spotPrices: Record<string, number>
+  ivStatsMap: IVStatsMap
   onSelectTicker: (ticker: string) => void
 }
 
@@ -218,11 +219,11 @@ function StrategyCard({ s, spot, onSelectTicker }: {
   )
 }
 
-export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
+export function StrategyScreener({ spotPrices, ivStatsMap, onSelectTicker }: Props) {
   const [thesis, setThesis] = useState<Thesis | 'All'>('All')
   const [minScore, setMinScore] = useState(55)
 
-  const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, thesis, minScore)
+  const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, ivStatsMap, thesis, minScore)
 
   const filtered = strategies.filter(s => thesis === 'All' || s.thesis === thesis)
 

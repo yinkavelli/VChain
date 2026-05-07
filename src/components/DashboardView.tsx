@@ -10,6 +10,8 @@ interface Props {
   onSelectTicker: (ticker: string) => void
 }
 
+// SPY = cap-weighted S&P 500 proxy — already in our stocks list
+
 function fmtPrice(n: number) {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
@@ -21,13 +23,14 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
   const losers = useMemo(() =>
     [...stocks].sort((a, b) => a.changePct - b.changePct).slice(0, 5), [stocks])
 
-  const advancers = stocks.filter(s => s.changePct > 0).length
-  const decliners = stocks.filter(s => s.changePct < 0).length
+  const advancers   = stocks.filter(s => s.changePct > 0).length
+  const decliners   = stocks.filter(s => s.changePct < 0).length
   const advDecRatio = decliners > 0 ? (advancers / decliners).toFixed(2) : '—'
-  const avgChange  = stocks.length
+  const avgChange   = stocks.length
     ? (stocks.reduce((s, r) => s + r.changePct, 0) / stocks.length).toFixed(2)
     : '0'
-  const sentiment  = parseFloat(avgChange) > 0.5 ? 'Bullish' : parseFloat(avgChange) < -0.5 ? 'Bearish' : 'Neutral'
+  const spyChange   = stocks.find(s => s.ticker === 'SPY')?.changePct ?? null
+  const sentiment   = parseFloat(avgChange) > 0.5 ? 'Bullish' : parseFloat(avgChange) < -0.5 ? 'Bearish' : 'Neutral'
 
   const sectorData = useMemo(() => {
     const map = new Map<string, { total: number; count: number }>()
@@ -76,17 +79,17 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
             how: 'A ratio above 2.0 indicates strong broad-based buying. Below 0.5 indicates heavy selling pressure. Values near 1.0 suggest a mixed or transitioning market.',
             signal: 'A/D > 2.0 → Strong breadth. A/D < 0.5 → Broad selling. A/D ~1.0 → Mixed.',
           }} />
-        <StatCard label="Avg S&P Move"
+        <StatCard label="Avg vs SPY"
           value={`${parseFloat(avgChange) >= 0 ? '+' : ''}${avgChange}%`}
-          sub="Equal-weighted avg"
+          sub={spyChange !== null ? `SPY: ${spyChange >= 0 ? '+' : ''}${spyChange.toFixed(2)}% cap-wtd` : 'Equal-weighted avg'}
           icon={<TrendingUp className="w-4 h-4" />}
           color={parseFloat(avgChange) >= 0 ? 'emerald' : 'red'}
           delay={0.1}
           tooltip={{
-            title: 'Average S&P 500 Move',
-            body: 'Equal-weighted average of today\'s % change across all loaded S&P 500 stocks. Unlike the cap-weighted S&P 500 index, this treats a $10 stock the same as a $500 stock.',
-            how: 'When the equal-weight average significantly diverges from the cap-weight index, it signals that large-cap mega-techs are driving index moves while the average stock is doing something different.',
-            signal: 'Equal-weight > cap-weight → Broad participation. Equal-weight < cap-weight → Mega-cap driven move.',
+            title: 'Equal-Weight Avg vs SPY',
+            body: 'Top number = equal-weighted average move of all loaded stocks (each stock counts equally). Bottom = SPY ETF change (cap-weighted — AAPL/MSFT/NVDA dominate). When they diverge it tells you who\'s driving the market.',
+            how: 'Avg > SPY → Broad participation, healthy rally. Avg < SPY → Only mega-caps moving, narrow and fragile. Avg << SPY → Mega-cap masks weakness underneath.',
+            signal: 'Avg ≈ SPY → Healthy. Avg > SPY → Broad breadth. Avg << SPY → Mega-cap led, be cautious.',
           }} />
         <StatCard label="Universe"
           value={`${stocks.length}`}

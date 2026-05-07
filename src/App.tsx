@@ -9,7 +9,7 @@ import { DashboardView } from './components/DashboardView'
 import { ScreenerView } from './components/ScreenerView'
 import { OptionChainView } from './components/OptionChainView'
 import { StrategyScreener } from './components/StrategyScreener'
-import { useScreener } from './hooks/useScreener'
+import { useScreener, useIVStatsMap } from './hooks/useScreener'
 
 export default function App() {
   const [activeTab, setActiveTab]   = useState('dashboard')
@@ -19,8 +19,9 @@ export default function App() {
   const qc = useQueryClient()
 
   const { data: stocks = [], isLoading } = useScreener()
-  const spotPrice = stocks.find(r => r.ticker === selectedTicker)?.price ?? 0
+  const spotPrice  = stocks.find(r => r.ticker === selectedTicker)?.price ?? 0
   const spotPrices = Object.fromEntries(stocks.map(s => [s.ticker, s.price]))
+  const ivStatsMap = useIVStatsMap(stocks.map(s => s.ticker))
 
   function handleRefresh() {
     setRefreshing(true)
@@ -91,7 +92,7 @@ export default function App() {
           {activeTab === 'strategies' && (
             <motion.div key="strategies"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <StrategyScreener spotPrices={spotPrices} onSelectTicker={handleSelectTicker} />
+              <StrategyScreener spotPrices={spotPrices} ivStatsMap={ivStatsMap} onSelectTicker={handleSelectTicker} />
             </motion.div>
           )}
           {activeTab === 'chains' && (
