@@ -1,10 +1,11 @@
-import { Search, Link2, Briefcase, Settings } from 'lucide-react'
+import { LayoutDashboard, Search, Link2, Briefcase, Settings } from 'lucide-react'
 
 const TABS = [
-  { id: 'screener',  label: 'Screener',  icon: Search    },
-  { id: 'chains',    label: 'Chains',    icon: Link2     },
-  { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
-  { id: 'settings',  label: 'Settings',  icon: Settings  },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'screener',  label: 'Screener',  icon: Search          },
+  { id: 'chains',    label: 'Chains',    icon: Link2           },
+  { id: 'portfolio', label: 'Portfolio', icon: Briefcase       },
+  { id: 'settings',  label: 'Settings',  icon: Settings        },
 ]
 
 export function BottomNav({ active, onChange }: { active: string; onChange: (t: string) => void }) {
