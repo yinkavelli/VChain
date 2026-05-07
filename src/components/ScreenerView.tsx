@@ -97,20 +97,12 @@ export function ScreenerView({ onSelectTicker }: Props) {
       {/* Sector rolling picker */}
       {/* Sector picker with gradient contrast surround */}
       <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,var(--grad-end) 100%)', padding: '1.5px' }}>
-        <div className="rounded-2xl px-4 py-3 flex items-center gap-4" style={{ background: 'var(--bg-card)' }}>
-          <div className="flex-shrink-0 text-center min-w-[56px]">
-            <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--accent)' }}>Sector</p>
-            <p className="text-[11px] font-bold leading-tight" style={{ color: 'var(--text)' }}>{sector}</p>
+        <div className="rounded-2xl px-3 py-2 flex items-center justify-between gap-2" style={{ background: 'var(--bg-card)' }}>
+          <p className="text-[9px] font-bold uppercase tracking-widest flex-shrink-0" style={{ color: 'var(--accent)' }}>Sector</p>
+          <div className="flex-1 flex justify-center min-w-0">
+            <RollingPicker items={['All', ...SECTORS]} selected={sector} onChange={setSector} width={180} />
           </div>
-          <div className="w-px self-stretch" style={{ background: 'rgba(99,102,241,0.25)' }} />
-          <div className="flex-1 flex justify-center">
-            <RollingPicker
-              items={['All', ...SECTORS]}
-              selected={sector}
-              onChange={setSector}
-              width={200}
-            />
-          </div>
+          <p className="text-[10px] font-semibold flex-shrink-0 w-20 text-right truncate" style={{ color: 'var(--text-sub)' }}>{sector}</p>
         </div>
       </div>
 

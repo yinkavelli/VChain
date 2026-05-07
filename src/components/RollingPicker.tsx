@@ -33,12 +33,12 @@ export function RollingPicker({ items, selected, onChange, formatLabel, width = 
     <div className="relative flex-shrink-0" style={{ width, height: ITEM_H * 3 }}>
       {/* Gradient overlays top/bottom */}
       <div className="absolute inset-x-0 top-0 h-7 z-10 pointer-events-none rounded-t-xl"
-        style={{ background: 'linear-gradient(to bottom, var(--bg-card-alt), transparent)' }} />
+        style={{ background: 'linear-gradient(to bottom, var(--bg-card), transparent)' }} />
       <div className="absolute inset-x-0 bottom-0 h-7 z-10 pointer-events-none rounded-b-xl"
-        style={{ background: 'linear-gradient(to top, var(--bg-card-alt), transparent)' }} />
-      {/* Selection highlight */}
+        style={{ background: 'linear-gradient(to top, var(--bg-card), transparent)' }} />
+      {/* Selection highlight — silver/grey track */}
       <div className="absolute inset-x-0 z-0 rounded-lg"
-        style={{ top: ITEM_H, height: ITEM_H, background: 'rgba(14,165,233,0.12)', border: '1px solid rgba(14,165,233,0.3)' }} />
+        style={{ top: ITEM_H, height: ITEM_H, background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.2)' }} />
       {/* Scrollable list */}
       <div
         ref={listRef}

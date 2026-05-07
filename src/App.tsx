@@ -145,10 +145,7 @@ export default function App() {
                 <p className="text-[10px] text-amber-500 font-mono">massive.com/pricing</p>
               </div>
 
-              <div className="gradient-card p-4">
-                <p className="text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>Appearance</p>
-              </div>
-              <div className="gradient-card p-4">
+<div className="gradient-card p-4">
                 <div className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Version</div>
                 <div className="text-xs font-mono" style={{ color: 'var(--accent)' }}>V Chain v1.0.0 · Massive.com Options API</div>
               </div>

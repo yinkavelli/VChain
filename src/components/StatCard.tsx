@@ -53,7 +53,7 @@ export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0,
         </div>
         <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
         <p className="text-2xl font-bold font-mono" style={{ color: 'var(--text)' }}>{value}</p>
-        {sub && <p className="text-[10px] mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{sub}</p>}
+        {sub && <p className="text-[10px] mt-1 leading-relaxed" style={{ color: 'var(--text-sub)' }}>{sub}</p>}
       </motion.div>
     </>
   )
