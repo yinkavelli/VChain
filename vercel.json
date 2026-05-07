@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "api/proxy.js": { "regions": ["iad1"] }
+  }
+}
