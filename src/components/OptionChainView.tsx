@@ -128,7 +128,7 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
                 className="sticky left-0 z-30 px-3 py-2.5 text-center border-r border-indigo-900/30 bg-indigo-950/40">
                 <div className="text-[10px] font-bold text-indigo-400">Strike</div>
               </div>
-              {['Last', 'Bid', 'Ask', 'IV', 'Δ Delta', 'θ Theta', 'Γ', 'ν Vega', 'OI'].map(h => (
+              {['Prev Close', 'Bid*', 'Ask*', 'IV', 'Δ Delta', 'θ Theta', 'Γ', 'ν Vega', 'OI'].map(h => (
                 <div key={h} style={{ width: 68, minWidth: 68 }} className="px-2 py-2.5">
                   <div className="text-[10px] font-semibold text-slate-500">{h}</div>
                 </div>
@@ -176,6 +176,11 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
           </div>
         </div>
       )}
+
+      {/* Data notice */}
+      <p className="text-[10px] px-1" style={{ color: 'var(--text-muted)' }}>
+        * Bid/Ask requires Developer plan ($79/mo). Prev Close = yesterday's EOD price. Greeks & IV are current.
+      </p>
     </div>
   )
 }

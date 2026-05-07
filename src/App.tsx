@@ -129,10 +129,20 @@ export default function App() {
                     </div>
                   ))}
                   <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Delay</span><span className="text-amber-500">15 minutes</span></div>
-                  <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Greeks</span><span className="text-emerald-500">Included</span></div>
+                  <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Greeks & IV</span><span className="text-emerald-500">Live ✓</span></div>
+                  <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Option Bid/Ask</span><span className="text-amber-500">EOD only ⚠</span></div>
                   <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Historical IV</span><span className="text-emerald-500">Up to 5 years</span></div>
                 </div>
               </div>
+              {/* Upgrade nudge */}
+              <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,rgba(245,158,11,0.12) 0%,rgba(13,13,32,0.95) 100%)', border: '1px solid rgba(245,158,11,0.25)' }}>
+                <p className="text-sm font-semibold text-amber-400 mb-1">Unlock live Bid/Ask</p>
+                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+                  Upgrade to Massive Developer ($79/mo) to get real-time intraday option quotes. Currently on Starter — option prices show previous day's close only.
+                </p>
+                <p className="text-[10px] text-amber-500 font-mono">massive.com/pricing</p>
+              </div>
+
               <div className="gradient-card p-4">
                 <p className="text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>Appearance</p>
                 <div className="flex items-center justify-between">
