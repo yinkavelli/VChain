@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { fetchStockSnapshots } from '../lib/massiveApi'
 import { motion } from 'framer-motion'
 import { Activity, TrendingUp, BarChart2, Zap } from 'lucide-react'
 import { StatCard } from './StatCard'
@@ -23,13 +25,25 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
   const losers = useMemo(() =>
     [...stocks].sort((a, b) => a.changePct - b.changePct).slice(0, 5), [stocks])
 
+  const { data: benchmarks } = useQuery({
+    queryKey: ['benchmarks'],
+    queryFn: async () => {
+      const m = await fetchStockSnapshots(['SPY', 'QQQ', 'IWM'])
+      return m
+    },
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+  })
+
+  const spySnap    = benchmarks?.get('SPY')
+  const spyChange  = spySnap?.todaysChangePerc ?? null
+
   const advancers   = stocks.filter(s => s.changePct > 0).length
   const decliners   = stocks.filter(s => s.changePct < 0).length
   const advDecRatio = decliners > 0 ? (advancers / decliners).toFixed(2) : '—'
   const avgChange   = stocks.length
     ? (stocks.reduce((s, r) => s + r.changePct, 0) / stocks.length).toFixed(2)
     : '0'
-  const spyChange   = stocks.find(s => s.ticker === 'SPY')?.changePct ?? null
   const sentiment   = parseFloat(avgChange) > 0.5 ? 'Bullish' : parseFloat(avgChange) < -0.5 ? 'Bearish' : 'Neutral'
 
   const sectorData = useMemo(() => {
