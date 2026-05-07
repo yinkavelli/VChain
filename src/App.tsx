@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RefreshCw, Link2 } from 'lucide-react'
+import { RefreshCw, Link2, Sun, Moon } from 'lucide-react'
+import { useTheme } from './hooks/useTheme'
 import { useQueryClient } from '@tanstack/react-query'
 import { BottomNav } from './components/BottomNav'
 import { Ticker } from './components/Ticker'
@@ -13,6 +14,7 @@ export default function App() {
   const [activeTab, setActiveTab]   = useState('dashboard')
   const [selectedTicker, setTicker] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const { dark, toggle } = useTheme()
   const qc = useQueryClient()
 
   const { data: stocks = [], isLoading } = useScreener()
@@ -30,38 +32,44 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-svh bg-[#0a0a14] text-slate-200">
-      <header className="sticky top-0 z-20 border-b border-[#1e1e3f]"
-        style={{ background: 'rgba(10,10,20,0.95)', backdropFilter: 'blur(20px)' }}>
+    <div className="min-h-svh" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+      <header className="sticky top-0 z-20" style={{ background: 'var(--bg-header)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center"
-              style={{ boxShadow: '0 0 16px rgba(99,102,241,0.4)' }}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg,#0ea5e9,#06b6d4)', boxShadow: '0 0 16px rgba(14,165,233,0.4)' }}>
               <Link2 className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white leading-tight">V Chain</h1>
-              <p className="text-[9px] text-indigo-400 font-medium leading-tight">Stock Options Intelligence</p>
+              <h1 className="text-sm font-bold leading-tight" style={{ color: 'var(--text)' }}>V Chain</h1>
+              <p className="text-[9px] font-medium leading-tight" style={{ color: 'var(--accent)' }}>Stock Options Intelligence</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-[10px] text-right">
               <div className="flex items-center gap-1 justify-end mb-0.5">
                 {isLoading && !stocks.length ? (
-                  <><span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" /><span className="text-indigo-400 font-medium">Loading…</span></>
+                  <><span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /><span className="text-blue-400 font-medium">Loading…</span></>
                 ) : (
-                  <><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /><span className="text-amber-400 font-medium">15-min delay</span></>
+                  <><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /><span className="text-amber-500 font-medium">15-min delay</span></>
                 )}
               </div>
-              <div className="text-slate-500">{stocks.length} stocks</div>
+              <div style={{ color: 'var(--text-muted)' }}>{stocks.length} stocks</div>
             </div>
+            <button onClick={toggle} title={dark ? 'Switch to light' : 'Switch to dark'}
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+              style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
+              {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
             <button onClick={handleRefresh}
-              className="w-8 h-8 rounded-xl bg-[#1a1a3a] border border-[#1e1e3f] flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-colors">
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing || isLoading ? 'animate-spin text-indigo-400' : ''}`} />
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+              style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing || isLoading ? 'animate-spin' : ''}`}
+                style={{ color: refreshing || isLoading ? 'var(--accent)' : 'var(--text-sub)' }} />
             </button>
           </div>
         </div>
-        <Ticker stocks={stocks.slice(0, 30)} />
+        <Ticker stocks={stocks.slice(0, 30)} dark={dark} />
       </header>
 
       <main className="px-4 pt-4 pb-24 max-w-lg mx-auto">
@@ -83,10 +91,10 @@ export default function App() {
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className="space-y-3">
               {!selectedTicker ? (
-                <div className="rounded-2xl border border-[#1e1e3f] bg-[#0d0d20] p-8 text-center">
-                  <Link2 className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
-                  <p className="text-sm font-semibold text-white mb-1">No ticker selected</p>
-                  <p className="text-xs text-slate-500">Pick a stock from the Screener to view its option chain</p>
+                <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <Link2 className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--accent)' }} />
+                  <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>No ticker selected</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Pick a stock from the Screener to view its option chain</p>
                 </div>
               ) : (
                 <OptionChainView ticker={selectedTicker} spotPrice={spotPrice} />
@@ -96,10 +104,10 @@ export default function App() {
           {activeTab === 'portfolio' && (
             <motion.div key="portfolio"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <div className="rounded-2xl border border-[#1e1e3f] bg-[#0d0d20] p-8 text-center">
-                <Link2 className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
-                <p className="text-sm font-semibold text-white mb-1">Portfolio coming soon</p>
-                <p className="text-xs text-slate-500">Simulated trade booking and P&L tracking</p>
+              <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <Link2 className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--accent)' }} />
+                <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>Portfolio coming soon</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Simulated trade booking and P&L tracking</p>
               </div>
             </motion.div>
           )}
@@ -108,22 +116,37 @@ export default function App() {
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className="space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-white mb-0.5">Settings</h2>
-                <p className="text-xs text-slate-500">Data source & preferences</p>
+                <h2 className="text-lg font-bold mb-0.5" style={{ color: 'var(--text)' }}>Settings</h2>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Data source & preferences</p>
               </div>
-              <div className="gradient-card rounded-2xl p-4 space-y-3">
-                <p className="text-sm font-semibold text-white">Data Source</p>
-                <div className="space-y-2 text-xs text-slate-400">
-                  <div className="flex justify-between"><span>Provider</span><span className="text-white">Massive.com</span></div>
-                  <div className="flex justify-between"><span>Delay</span><span className="text-amber-400">15 minutes (Starter)</span></div>
-                  <div className="flex justify-between"><span>Universe</span><span className="text-white">S&P 500 ({stocks.length} loaded)</span></div>
-                  <div className="flex justify-between"><span>Greeks</span><span className="text-emerald-400">Included</span></div>
-                  <div className="flex justify-between"><span>Historical IV</span><span className="text-emerald-400">Up to 5 years</span></div>
+              <div className="gradient-card p-4 space-y-3">
+                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Data Source</p>
+                <div className="space-y-2 text-xs">
+                  {[['Provider','Massive.com'],['Universe',`S&P 500 (${stocks.length} loaded)`]].map(([k,v]) => (
+                    <div key={k} className="flex justify-between">
+                      <span style={{ color: 'var(--text-muted)' }}>{k}</span>
+                      <span style={{ color: 'var(--text)' }}>{v}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Delay</span><span className="text-amber-500">15 minutes</span></div>
+                  <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Greeks</span><span className="text-emerald-500">Included</span></div>
+                  <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Historical IV</span><span className="text-emerald-500">Up to 5 years</span></div>
                 </div>
               </div>
-              <div className="gradient-card rounded-2xl p-4">
-                <div className="text-sm font-medium text-white mb-1">Version</div>
-                <div className="text-xs text-indigo-400 font-mono">V Chain v1.0.0 · Massive.com Options API</div>
+              <div className="gradient-card p-4">
+                <p className="text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>Appearance</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs" style={{ color: 'var(--text-sub)' }}>{dark ? 'Dark mode active' : 'Light mode active'}</span>
+                  <button onClick={toggle} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                    style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
+                    {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                    Switch to {dark ? 'light' : 'dark'}
+                  </button>
+                </div>
+              </div>
+              <div className="gradient-card p-4">
+                <div className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Version</div>
+                <div className="text-xs font-mono" style={{ color: 'var(--accent)' }}>V Chain v1.0.0 · Massive.com Options API</div>
               </div>
             </motion.div>
           )}

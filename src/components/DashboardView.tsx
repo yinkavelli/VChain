@@ -104,8 +104,8 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
 
       {/* Sector performance chart */}
       {sectorData.length > 0 && (
-        <div className="rounded-2xl border border-[#1e1e3f] bg-[#0d0d20] p-4">
-          <p className="text-xs font-semibold text-slate-400 mb-3">Sector Performance (today)</p>
+        <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-sub)' }}>Sector Performance (today)</p>
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={sectorData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <XAxis dataKey="sector" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false} />
@@ -129,19 +129,20 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
       <div className="grid grid-cols-2 gap-3">
         {/* Gainers */}
         <div>
-          <p className="text-xs font-semibold text-emerald-400 mb-2">Top Gainers</p>
+          <p className="text-xs font-semibold text-emerald-500 mb-2">Top Gainers</p>
           <div className="space-y-1.5">
             {gainers.map((s, i) => (
               <motion.button key={s.ticker}
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => onSelectTicker(s.ticker)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-950/20 border border-emerald-800/20 hover:border-emerald-700/40 transition-colors">
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors"
+      style={{ background: 'var(--bg-card)', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <div className="text-left">
-                  <p className="text-xs font-bold text-white">{s.ticker}</p>
-                  <p className="text-[9px] text-slate-500">{fmtPrice(s.price)}</p>
+                  <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{s.ticker}</p>
+                  <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(s.price)}</p>
                 </div>
-                <span className="text-xs font-mono font-bold text-emerald-400">
+                <span className="text-xs font-mono font-bold text-emerald-500">
                   +{s.changePct.toFixed(2)}%
                 </span>
               </motion.button>
@@ -158,10 +159,11 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
                 initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => onSelectTicker(s.ticker)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-red-950/20 border border-red-800/20 hover:border-red-700/40 transition-colors">
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors"
+      style={{ background: 'var(--bg-card)', border: '1px solid rgba(239,68,68,0.2)' }}>
                 <div className="text-left">
-                  <p className="text-xs font-bold text-white">{s.ticker}</p>
-                  <p className="text-[9px] text-slate-500">{fmtPrice(s.price)}</p>
+                  <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{s.ticker}</p>
+                  <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(s.price)}</p>
                 </div>
                 <span className="text-xs font-mono font-bold text-red-400">
                   {s.changePct.toFixed(2)}%

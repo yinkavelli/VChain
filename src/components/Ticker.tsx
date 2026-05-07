@@ -4,9 +4,10 @@ import type { ScreenerRow } from '../hooks/useScreener'
 
 interface Props {
   stocks: ScreenerRow[]
+  dark?: boolean
 }
 
-export function Ticker({ stocks }: Props) {
+export function Ticker({ stocks, dark: _dark }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -30,12 +31,12 @@ export function Ticker({ stocks }: Props) {
   const items = [...stocks, ...stocks] // duplicate for seamless loop
 
   return (
-    <div className="overflow-hidden border-b border-[#1e1e3f] bg-[#080812]">
+    <div className="overflow-hidden" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-alt)' }}>
       <div ref={ref} className="flex gap-6 py-1.5 px-4 whitespace-nowrap will-change-transform">
         {items.map((s, i) => (
           <span key={`${s.ticker}-${i}`} className="flex items-center gap-1.5 text-[11px]">
-            <span className="font-bold text-slate-300">{s.ticker}</span>
-            <span className="font-mono text-white">
+            <span className="font-bold" style={{ color: 'var(--text)' }}>{s.ticker}</span>
+            <span className="font-mono" style={{ color: 'var(--text-sub)' }}>
               ${(s.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <span className={`flex items-center gap-0.5 font-mono ${s.changePct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>

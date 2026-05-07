@@ -26,22 +26,24 @@ function RowWithIV({ row, onClick }: { row: ScreenerRow; onClick: () => void }) 
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       onClick={onClick}
-      className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-[#1e1e3f] bg-[#0d0d20] hover:border-indigo-800/50 transition-colors text-left">
+      className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-colors text-left"
+      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
-          <span className="text-[11px] font-bold text-indigo-300">{row.ticker.slice(0, 4)}</span>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(14,165,233,0.1)' }}>
+          <span className="text-[11px] font-bold" style={{ color: 'var(--accent)' }}>{row.ticker.slice(0, 4)}</span>
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white">{row.ticker}</span>
+            <span className="text-sm font-bold" style={{ color: 'var(--text)' }}>{row.ticker}</span>
             <IVBadge ivRank={ivRank} />
           </div>
-          <p className="text-[10px] text-slate-500 truncate">{row.name}</p>
+          <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>{row.name}</p>
         </div>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
         <div className="text-right">
-          <p className="text-sm font-mono font-semibold text-white">{fmtPrice(row.price)}</p>
+          <p className="text-sm font-mono font-semibold" style={{ color: 'var(--text)' }}>{fmtPrice(row.price)}</p>
           <div className={`flex items-center gap-0.5 justify-end text-[10px] font-mono ${row.changePct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {row.changePct >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
             {row.changePct >= 0 ? '+' : ''}{row.changePct.toFixed(2)}%
@@ -49,11 +51,11 @@ function RowWithIV({ row, onClick }: { row: ScreenerRow; onClick: () => void }) 
         </div>
         {iv30 > 0 && (
           <div className="text-right hidden sm:block">
-            <p className="text-[10px] text-slate-500">IV30</p>
-            <p className="text-xs font-mono text-indigo-300">{iv30.toFixed(1)}%</p>
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>IV30</p>
+            <p className="text-xs font-mono" style={{ color: 'var(--accent)' }}>{iv30.toFixed(1)}%</p>
           </div>
         )}
-        <ChevronRight className="w-4 h-4 text-slate-600" />
+        <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
       </div>
     </motion.button>
   )
@@ -82,21 +84,22 @@ export function ScreenerView({ onSelectTicker }: Props) {
     <div className="space-y-4">
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search ticker or company…"
-          className="w-full bg-[#0d0d20] border border-[#1e1e3f] rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+          className="w-full rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}
         />
       </div>
 
       {/* Sector rolling picker */}
-      <div className="rounded-2xl border border-blue-900/30 p-4"
-        style={{ background: 'linear-gradient(160deg,rgba(14,30,80,0.4) 0%,rgba(5,5,20,0.9) 100%)' }}>
+      <div className="rounded-2xl p-4"
+        style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border-acc)' }}>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Sector</p>
-          <p className="text-xs font-semibold text-white">{sector}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Sector</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>{sector}</p>
         </div>
         <div className="flex justify-center">
           <RollingPicker
@@ -110,9 +113,10 @@ export function ScreenerView({ onSelectTicker }: Props) {
 
       {/* Stats bar */}
       <div className="flex items-center justify-between px-1">
-        <p className="text-xs text-slate-500">{filtered.length} stocks · 15-min delayed</p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{filtered.length} stocks · 15-min delayed</p>
         <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
-          className="text-[11px] bg-[#0d0d20] border border-[#1e1e3f] rounded-lg px-2 py-1 text-slate-400 focus:outline-none">
+          className="text-[11px] rounded-lg px-2 py-1 focus:outline-none"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
           <option value="changePct">Sort: % Change</option>
           <option value="volume">Sort: Volume</option>
         </select>

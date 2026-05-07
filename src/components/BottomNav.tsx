@@ -10,8 +10,8 @@ const TABS = [
 
 export function BottomNav({ active, onChange }: { active: string; onChange: (t: string) => void }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1e1e3f]"
-      style={{ background: 'rgba(10,10,20,0.97)', backdropFilter: 'blur(20px)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-50"
+      style={{ background: 'var(--bg-nav)', backdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)' }}>
       <div className="flex max-w-lg mx-auto">
         {TABS.map(t => {
           const Icon = t.icon
@@ -19,8 +19,8 @@ export function BottomNav({ active, onChange }: { active: string; onChange: (t: 
           return (
             <button key={t.id} onClick={() => onChange(t.id)}
               className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors">
-              <Icon className={`w-5 h-5 ${active_ ? 'text-indigo-400' : 'text-slate-600'}`} />
-              <span className={`text-[10px] font-medium ${active_ ? 'text-indigo-400' : 'text-slate-600'}`}>
+              <Icon className="w-5 h-5" style={{ color: active_ ? 'var(--accent)' : 'var(--text-muted)' }} />
+              <span className="text-[10px] font-medium" style={{ color: active_ ? 'var(--accent)' : 'var(--text-muted)' }}>
                 {t.label}
               </span>
             </button>

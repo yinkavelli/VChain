@@ -9,7 +9,7 @@ interface Props {
   width?: number
 }
 
-const ITEM_H = 40
+const ITEM_H = 28
 
 export function RollingPicker({ items, selected, onChange, formatLabel, width = 120 }: Props) {
   const idx     = Math.max(0, items.indexOf(selected))
@@ -32,13 +32,13 @@ export function RollingPicker({ items, selected, onChange, formatLabel, width = 
   return (
     <div className="relative flex-shrink-0" style={{ width, height: ITEM_H * 3 }}>
       {/* Gradient overlays top/bottom */}
-      <div className="absolute inset-x-0 top-0 h-10 z-10 pointer-events-none rounded-t-xl"
-        style={{ background: 'linear-gradient(to bottom, rgba(5,5,20,0.95), transparent)' }} />
-      <div className="absolute inset-x-0 bottom-0 h-10 z-10 pointer-events-none rounded-b-xl"
-        style={{ background: 'linear-gradient(to top, rgba(5,5,20,0.95), transparent)' }} />
+      <div className="absolute inset-x-0 top-0 h-7 z-10 pointer-events-none rounded-t-xl"
+        style={{ background: 'linear-gradient(to bottom, var(--bg-card-alt), transparent)' }} />
+      <div className="absolute inset-x-0 bottom-0 h-7 z-10 pointer-events-none rounded-b-xl"
+        style={{ background: 'linear-gradient(to top, var(--bg-card-alt), transparent)' }} />
       {/* Selection highlight */}
-      <div className="absolute inset-x-0 z-0 rounded-xl border border-blue-500/30 bg-blue-500/10"
-        style={{ top: ITEM_H, height: ITEM_H }} />
+      <div className="absolute inset-x-0 z-0 rounded-lg"
+        style={{ top: ITEM_H, height: ITEM_H, background: 'rgba(14,165,233,0.12)', border: '1px solid rgba(14,165,233,0.3)' }} />
       {/* Scrollable list */}
       <div
         ref={listRef}

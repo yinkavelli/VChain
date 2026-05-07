@@ -43,16 +43,17 @@ export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0,
         transition={{ delay }}
         whileTap={{ scale: 0.97 }}
         onClick={() => tooltip && setOpen(true)}
-        className={`rounded-2xl border p-4 ${c.bg} ${c.border} ${tooltip ? 'cursor-pointer' : ''}`}>
+        className={`rounded-2xl p-4 ${tooltip ? 'cursor-pointer' : ''}`}
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-acc)' }}>
         <div className="flex items-start justify-between mb-2">
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${c.icon}`}>
             {icon}
           </div>
           {tooltip && <span className="text-[9px] text-slate-600 font-medium">tap</span>}
         </div>
-        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{label}</p>
-        <p className={`text-2xl font-bold font-mono ${c.text}`}>{value}</p>
-        {sub && <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">{sub}</p>}
+        <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
+        <p className={`text-2xl font-bold font-mono ${c.text}`} style={{ color: c.text.includes('indigo') ? 'var(--accent)' : undefined }}>{value}</p>
+        {sub && <p className="text-[10px] mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{sub}</p>}
       </motion.div>
     </>
   )
