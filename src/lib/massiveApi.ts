@@ -115,6 +115,8 @@ export async function fetchOptionChain(
   ticker: string,
   params: {
     expiration_date?: string
+    expiration_date_lte?: string
+    expiration_date_gte?: string
     contract_type?: 'call' | 'put'
     strike_price_gte?: number
     strike_price_lte?: number
@@ -122,10 +124,12 @@ export async function fetchOptionChain(
   } = {}
 ): Promise<OptionContract[]> {
   const qp: Record<string, string> = { limit: String(params.limit ?? 250) }
-  if (params.expiration_date)  qp.expiration_date  = params.expiration_date
-  if (params.contract_type)    qp.contract_type    = params.contract_type
-  if (params.strike_price_gte) qp['strike_price.gte'] = String(params.strike_price_gte)
-  if (params.strike_price_lte) qp['strike_price.lte'] = String(params.strike_price_lte)
+  if (params.expiration_date)     qp.expiration_date              = params.expiration_date
+  if (params.expiration_date_lte) qp['expiration_date.lte']       = params.expiration_date_lte
+  if (params.expiration_date_gte) qp['expiration_date.gte']       = params.expiration_date_gte
+  if (params.contract_type)       qp.contract_type                = params.contract_type
+  if (params.strike_price_gte)    qp['strike_price.gte']          = String(params.strike_price_gte)
+  if (params.strike_price_lte)    qp['strike_price.lte']          = String(params.strike_price_lte)
 
   const results: OptionContract[] = []
   let url: string | null = `/v3/snapshot/options/${ticker}`

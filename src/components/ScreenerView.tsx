@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Search, TrendingUp, TrendingDown, ChevronRight, Loader2 } from 'lucide-react'
 import { useScreener, useTickerIV, type ScreenerRow } from '../hooks/useScreener'
 import { SECTORS } from '../data/sp500'
+import { RollingPicker } from './RollingPicker'
 
 function fmtPrice(n: number) {
   if (!n) return '—'
@@ -90,16 +91,21 @@ export function ScreenerView({ onSelectTicker }: Props) {
         />
       </div>
 
-      {/* Sector filter */}
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-        {['All', ...SECTORS].map(s => (
-          <button key={s} onClick={() => setSector(s)}
-            className={`flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full font-medium transition-all ${
-              sector === s ? 'tab-active text-white' : 'bg-[#1a1a3a] text-slate-400 border border-[#1e1e3f]'
-            }`}>
-            {s}
-          </button>
-        ))}
+      {/* Sector rolling picker */}
+      <div className="rounded-2xl border border-blue-900/30 p-4"
+        style={{ background: 'linear-gradient(160deg,rgba(14,30,80,0.4) 0%,rgba(5,5,20,0.9) 100%)' }}>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Sector</p>
+          <p className="text-xs font-semibold text-white">{sector}</p>
+        </div>
+        <div className="flex justify-center">
+          <RollingPicker
+            items={['All', ...SECTORS]}
+            selected={sector}
+            onChange={setSector}
+            width={220}
+          />
+        </div>
       </div>
 
       {/* Stats bar */}
