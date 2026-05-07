@@ -6,19 +6,20 @@
 
 /* ── Theme variables ────────────────────────────────────────────────── */
 :root {
-  /* Light mode — light indigo/violet fintech */
-  --bg:           #f0f0ff;
+  /* Light mode */
+  --bg:           #f4f4f9;
   --bg-card:      #ffffff;
-  --bg-card-alt:  #f5f4ff;
-  --bg-header:    rgba(240,240,255,0.95);
-  --bg-nav:       rgba(240,240,255,0.97);
-  --text:         #0a0a20;
-  --text-sub:     #3b3a6b;
-  --text-muted:   #7c7aaa;
+  --bg-card-alt:  #efeff7;
+  --bg-header:    rgba(244,244,249,0.96);
+  --bg-nav:       rgba(244,244,249,0.98);
+  --text:         #0a0a1a;
+  --text-sub:     #3a3a60;
+  --text-muted:   #8080aa;
   --border:       rgba(99,102,241,0.15);
-  --border-acc:   rgba(99,102,241,0.3);
+  --border-acc:   rgba(99,102,241,0.25);
   --accent:       #6366f1;
-  --accent-glow:  rgba(99,102,241,0.25);
+  --accent-glow:  rgba(99,102,241,0.2);
+  --grad-end:     rgba(255,255,255,0.92);  /* light endpoint for gradient cards */
 }
 
 .dark {
@@ -35,6 +36,7 @@
   --border-acc:   rgba(99,102,241,0.25);
   --accent:       #6366f1;
   --accent-glow:  rgba(99,102,241,0.35);
+  --grad-end:     rgba(13,13,32,0.95);   /* dark endpoint for gradient cards */
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */

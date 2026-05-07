@@ -27,7 +27,7 @@ function RowWithIV({ row, onClick }: { row: ScreenerRow; onClick: () => void }) 
       animate={{ opacity: 1, x: 0 }}
       onClick={onClick}
       className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-colors text-left"
-      style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(13,13,32,0.95) 100%)', border: '1px solid rgba(99,102,241,0.15)' }}>
+      style={{ background: `linear-gradient(135deg, rgba(99,102,241,0.06) 0%, var(--grad-end) 100%)`, border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(14,165,233,0.1)' }}>
@@ -96,8 +96,8 @@ export function ScreenerView({ onSelectTicker }: Props) {
 
       {/* Sector rolling picker */}
       {/* Sector picker with gradient contrast surround */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,rgba(13,13,32,0.98) 100%)', padding: '1.5px' }}>
-        <div className="rounded-2xl px-4 py-3 flex items-center gap-4" style={{ background: 'linear-gradient(135deg,rgba(20,16,50,0.97) 0%,rgba(13,13,28,0.99) 100%)' }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,var(--grad-end) 100%)', padding: '1.5px' }}>
+        <div className="rounded-2xl px-4 py-3 flex items-center gap-4" style={{ background: 'var(--bg-card)' }}>
           <div className="flex-shrink-0 text-center min-w-[56px]">
             <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--accent)' }}>Sector</p>
             <p className="text-[11px] font-bold leading-tight" style={{ color: 'var(--text)' }}>{sector}</p>

@@ -84,7 +84,7 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
       </div>
 
       {/* Calls / Puts toggle */}
-      <div className="flex gap-1 p-1 rounded-2xl border border-indigo-900/40 bg-[#0d0d20]">
+      <div className="flex gap-1 p-1 rounded-2xl border border-indigo-900/40" style={{ background: 'var(--bg-card)' }}>
         {(['call', 'put'] as const).map(s => (
           <button key={s} onClick={() => setSide(s)}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${side === s ? 'text-white' : 'text-slate-500'}`}
@@ -99,8 +99,8 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
 
       {/* Expiry rolling picker */}
       {expiries.length > 0 && (
-        <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,rgba(13,13,32,0.98) 100%)', padding: '1.5px' }}>
-          <div className="rounded-2xl px-3 py-3 flex items-center gap-2 w-full" style={{ background: 'linear-gradient(135deg,rgba(20,16,50,0.97) 0%,rgba(13,13,28,0.99) 100%)' }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,var(--grad-end) 100%)', padding: '1.5px' }}>
+          <div className="rounded-2xl px-3 py-3 flex items-center gap-2 w-full" style={{ background: 'var(--bg-card)' }}>
             <div className="flex-shrink-0 text-center w-12">
               <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-indigo-400">Expiry</p>
               <p className="text-lg font-bold font-mono text-white">{dte(activeExpiry)}</p>
@@ -120,21 +120,21 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
 
       {/* Chain table */}
       {isLoading ? (
-        <div className="rounded-2xl border border-indigo-900/20 bg-[#0d0d20] py-12 text-center">
+        <div className="rounded-2xl border border-indigo-900/20 py-12 text-center" style={{ background: 'var(--bg-card)' }}>
           <Loader2 className="w-6 h-6 text-indigo-400 animate-spin mx-auto mb-2" />
           <p className="text-sm text-slate-500">Loading contracts…</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-indigo-900/30 overflow-auto max-h-[62svh] bg-[#0d0d20] no-scrollbar">
+        <div className="rounded-2xl border border-indigo-900/30 overflow-auto max-h-[62svh] no-scrollbar" style={{ background: 'var(--bg-card)' }}>
           <div style={{ minWidth: 590 }}>
             {/* Header */}
-            <div className="flex border-b border-indigo-900/30 sticky top-0 z-20" style={{ background: '#0a0a18', minWidth: 590 }}>
+            <div className="flex border-b border-indigo-900/30 sticky top-0 z-20" style={{ background: 'var(--bg-card-alt)', minWidth: 590 }}>
               <div style={{ width: 80, minWidth: 80 }}
                 className="sticky left-0 z-30 px-3 py-2.5 text-center border-r border-indigo-900/30 bg-indigo-950/40">
                 <div className="text-[10px] font-bold text-indigo-400">Strike</div>
               </div>
               {['Prev Close', 'Bid*', 'Ask*', 'IV', 'Δ Delta', 'θ Theta', 'Γ', 'ν Vega', 'OI'].map(h => (
-                <div key={h} style={{ width: 68, minWidth: 68, background: '#0a0a18' }} className="px-2 py-2.5">
+                <div key={h} style={{ width: 68, minWidth: 68, background: 'var(--bg-card-alt)' }} className="px-2 py-2.5">
                   <div className="text-[10px] font-semibold text-slate-500">{h}</div>
                 </div>
               ))}
@@ -148,8 +148,8 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
                 <motion.div key={row.strike}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
                   className="flex border-b border-blue-950/30 items-center"
-                  style={{ background: row.isATM ? 'rgba(99,102,241,0.12)' : i % 2 === 0 ? 'transparent' : 'rgba(13,13,32,0.6)' }}>
-                  <div style={{ width: 80, minWidth: 80, background: row.isATM ? 'rgba(99,102,241,0.2)' : i % 2 === 0 ? '#0d0d20' : '#0a0a1c' }}
+                  style={{ background: row.isATM ? 'rgba(99,102,241,0.12)' : i % 2 === 0 ? 'transparent' : 'var(--bg-card-alt)' }}>
+                  <div style={{ width: 80, minWidth: 80, background: row.isATM ? 'rgba(99,102,241,0.2)' : 'var(--bg-card)' }}
                     className="sticky left-0 z-10 px-3 py-3 text-center border-r border-indigo-900/20">
                     <div className={`text-xs font-bold font-mono ${row.isATM ? 'text-indigo-300' : 'text-slate-300'}`}>
                       ${row.strike.toLocaleString()}
