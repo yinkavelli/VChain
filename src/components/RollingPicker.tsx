@@ -6,12 +6,13 @@ interface Props {
   selected: string
   onChange: (val: string) => void
   formatLabel?: (val: string) => string
-  width?: number
+  width?: number | string
 }
 
 const ITEM_H = 22
 
 export function RollingPicker({ items, selected, onChange, formatLabel, width = 120 }: Props) {
+  const w = typeof width === 'string' ? width : width
   const idx     = Math.max(0, items.indexOf(selected))
   const listRef = useRef<HTMLDivElement>(null)
   const [_dragging] = useState(false)
@@ -30,7 +31,7 @@ export function RollingPicker({ items, selected, onChange, formatLabel, width = 
   }
 
   return (
-    <div className="relative flex-shrink-0" style={{ width, height: ITEM_H * 3 }}>
+    <div className="relative" style={{ width: w, height: ITEM_H * 3 }}>
       {/* Gradient overlays top/bottom */}
       <div className="absolute inset-x-0 top-0 h-7 z-10 pointer-events-none rounded-t-xl"
         style={{ background: 'linear-gradient(to bottom, var(--bg-card), transparent)' }} />

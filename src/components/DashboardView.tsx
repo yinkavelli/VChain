@@ -117,9 +117,15 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
               <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
                 tickFormatter={v => `${v > 0 ? '+' : ''}${v}%`} width={36} />
               <Tooltip
-                contentStyle={{ background: '#0d0d20', border: '1px solid #6366f1', borderRadius: 8, fontSize: 10 }}
-                labelStyle={{ color: '#a5b4fc', fontWeight: 600, marginBottom: 2 }}
-                itemStyle={{ color: '#e2e8f0' }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  return (
+                    <div style={{ background: '#0d0d20', border: '1px solid #6366f1', borderRadius: 8, padding: '8px 12px' }}>
+                      <p style={{ color: '#a5b4fc', fontWeight: 600, fontSize: 11, marginBottom: 2 }}>{label}</p>
+                      <p style={{ color: '#e2e8f0', fontSize: 11 }}>Avg change : {Number(payload[0].value) > 0 ? '+' : ''}{Number(payload[0].value).toFixed(2)}%</p>
+                    </div>
+                  )
+                }}
                 formatter={(v) => [`${Number(v) > 0 ? '+' : ''}${Number(v)}%`, 'Avg change']}
               />
               <Bar dataKey="avg" radius={[4, 4, 0, 0]}>
