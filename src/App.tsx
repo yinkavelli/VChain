@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RefreshCw, Link2, Sun, Moon } from 'lucide-react'
-import { useTheme } from './hooks/useTheme'
+import { RefreshCw, Link2 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { BottomNav } from './components/BottomNav'
 import { Ticker } from './components/Ticker'
@@ -15,7 +14,6 @@ export default function App() {
   const [activeTab, setActiveTab]   = useState('dashboard')
   const [selectedTicker, setTicker] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const { dark, toggle } = useTheme()
   const qc = useQueryClient()
 
   const { data: stocks = [], isLoading } = useScreener()
@@ -59,12 +57,7 @@ export default function App() {
               </div>
               <div style={{ color: 'var(--text-muted)' }}>{stocks.length} stocks</div>
             </div>
-            <button onClick={toggle} title={dark ? 'Switch to light' : 'Switch to dark'}
-              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-              style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
-              {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            </button>
-            <button onClick={handleRefresh}
+<button onClick={handleRefresh}
               className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
               style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing || isLoading ? 'animate-spin' : ''}`}
@@ -72,7 +65,7 @@ export default function App() {
             </button>
           </div>
         </div>
-        <Ticker stocks={stocks.slice(0, 30)} dark={dark} />
+        <Ticker stocks={stocks.slice(0, 30)} />
       </header>
 
       <main className="px-4 pt-4 pb-24 max-w-lg mx-auto">
@@ -154,14 +147,6 @@ export default function App() {
 
               <div className="gradient-card p-4">
                 <p className="text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>Appearance</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs" style={{ color: 'var(--text-sub)' }}>{dark ? 'Dark mode active' : 'Light mode active'}</span>
-                  <button onClick={toggle} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
-                    style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
-                    {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                    Switch to {dark ? 'light' : 'dark'}
-                  </button>
-                </div>
               </div>
               <div className="gradient-card p-4">
                 <div className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Version</div>
