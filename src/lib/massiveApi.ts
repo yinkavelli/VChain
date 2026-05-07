@@ -25,9 +25,9 @@ async function get<T>(path: string, params: Record<string, string> = {}): Promis
 export interface StockSnapshot {
   ticker: string
   day: { o: number; h: number; l: number; c: number; v: number; vw: number }
-  lastQuote: { P: number; S: number; p: number; s: number } // ask/bid
+  lastQuote: { P: number; S: number; p: number; s: number }
   lastTrade: { p: number; s: number; t: number }
-  min: { av: number; c: number; h: number; l: number; o: number; v: number }
+  min: { av: number; c: number; h: number; l: number; o: number; v: number; dv?: string; dav?: string }
   prevDay: { c: number; h: number; l: number; o: number; v: number; vw: number }
   todaysChangePerc: number
   todaysChange: number

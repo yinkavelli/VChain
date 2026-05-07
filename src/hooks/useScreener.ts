@@ -27,10 +27,11 @@ export function useScreener(sector = 'All') {
         const snap = snapMap.get(s.ticker)
         return {
           ...s,
-          price:      snap?.day?.c ?? snap?.lastTrade?.p ?? 0,
+          // day.c is 0 outside market hours — fall back to min.c (last minute close) or prevDay.c
+          price:      snap?.day?.c || snap?.min?.c || snap?.prevDay?.c || 0,
           changePct:  snap?.todaysChangePerc ?? 0,
           change:     snap?.todaysChange ?? 0,
-          volume:     snap?.day?.v ?? 0,
+          volume:     snap?.day?.v || snap?.min?.av || 0,
           iv30:       0,
           ivRank:     0,
           hv30:       0,
