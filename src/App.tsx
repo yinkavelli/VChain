@@ -8,6 +8,7 @@ import { Ticker } from './components/Ticker'
 import { DashboardView } from './components/DashboardView'
 import { ScreenerView } from './components/ScreenerView'
 import { OptionChainView } from './components/OptionChainView'
+import { StrategyScreener } from './components/StrategyScreener'
 import { useScreener } from './hooks/useScreener'
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
 
   const { data: stocks = [], isLoading } = useScreener()
   const spotPrice = stocks.find(r => r.ticker === selectedTicker)?.price ?? 0
+  const spotPrices = Object.fromEntries(stocks.map(s => [s.ticker, s.price]))
 
   function handleRefresh() {
     setRefreshing(true)
@@ -84,6 +86,12 @@ export default function App() {
             <motion.div key="screener"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
               <ScreenerView onSelectTicker={handleSelectTicker} />
+            </motion.div>
+          )}
+          {activeTab === 'strategies' && (
+            <motion.div key="strategies"
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              <StrategyScreener spotPrices={spotPrices} onSelectTicker={handleSelectTicker} />
             </motion.div>
           )}
           {activeTab === 'chains' && (
