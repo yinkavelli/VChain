@@ -21,11 +21,31 @@ interface Props {
 }
 
 const colorMap = {
-  indigo:  { bg: 'bg-indigo-950/40',  border: 'border-indigo-800/30',  text: 'text-indigo-300',  icon: 'bg-indigo-500/20 text-indigo-400' },
-  emerald: { bg: 'bg-emerald-950/40', border: 'border-emerald-800/30', text: 'text-emerald-300', icon: 'bg-emerald-500/20 text-emerald-400' },
-  violet:  { bg: 'bg-violet-950/40',  border: 'border-violet-800/30',  text: 'text-violet-300',  icon: 'bg-violet-500/20 text-violet-400' },
-  red:     { bg: 'bg-red-950/40',     border: 'border-red-800/30',     text: 'text-red-300',     icon: 'bg-red-500/20 text-red-400' },
-  amber:   { bg: 'bg-amber-950/40',   border: 'border-amber-800/30',   text: 'text-amber-300',   icon: 'bg-amber-500/20 text-amber-400' },
+  indigo:  {
+    grad: 'linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(13,13,32,0.95) 100%)',
+    border: 'rgba(99,102,241,0.25)', text: 'text-indigo-300',
+    icon: 'bg-indigo-500/20 text-indigo-400',
+  },
+  emerald: {
+    grad: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(13,13,32,0.95) 100%)',
+    border: 'rgba(16,185,129,0.25)', text: 'text-emerald-300',
+    icon: 'bg-emerald-500/20 text-emerald-400',
+  },
+  violet:  {
+    grad: 'linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(13,13,32,0.95) 100%)',
+    border: 'rgba(139,92,246,0.25)', text: 'text-violet-300',
+    icon: 'bg-violet-500/20 text-violet-400',
+  },
+  red:     {
+    grad: 'linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(13,13,32,0.95) 100%)',
+    border: 'rgba(239,68,68,0.25)', text: 'text-red-300',
+    icon: 'bg-red-500/20 text-red-400',
+  },
+  amber:   {
+    grad: 'linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(13,13,32,0.95) 100%)',
+    border: 'rgba(245,158,11,0.25)', text: 'text-amber-300',
+    icon: 'bg-amber-500/20 text-amber-400',
+  },
 }
 
 export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0, tooltip }: Props) {
@@ -44,15 +64,15 @@ export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0,
         whileTap={{ scale: 0.97 }}
         onClick={() => tooltip && setOpen(true)}
         className={`rounded-2xl p-4 ${tooltip ? 'cursor-pointer' : ''}`}
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-acc)' }}>
+        style={{ background: c.grad, border: `1px solid ${c.border}` }}>
         <div className="flex items-start justify-between mb-2">
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${c.icon}`}>
             {icon}
           </div>
-          {tooltip && <span className="text-[9px] text-slate-600 font-medium">tap</span>}
+          {tooltip && <span className="text-[9px] font-medium" style={{ color: 'var(--text-muted)' }}>tap</span>}
         </div>
         <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
-        <p className={`text-2xl font-bold font-mono ${c.text}`} style={{ color: c.text.includes('indigo') ? 'var(--accent)' : undefined }}>{value}</p>
+        <p className={`text-2xl font-bold font-mono ${c.text}`}>{value}</p>
         {sub && <p className="text-[10px] mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{sub}</p>}
       </motion.div>
     </>
