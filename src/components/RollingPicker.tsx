@@ -9,7 +9,7 @@ interface Props {
   width?: number
 }
 
-const ITEM_H = 28
+const ITEM_H = 22
 
 export function RollingPicker({ items, selected, onChange, formatLabel, width = 120 }: Props) {
   const idx     = Math.max(0, items.indexOf(selected))

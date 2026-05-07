@@ -69,17 +69,20 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
 
       {/* Expiry rolling picker */}
       {expiries.length > 0 && (
-        <div className="rounded-2xl border border-indigo-900/30 p-4"
-          style={{ background: 'linear-gradient(160deg,rgba(99,102,241,0.12) 0%,rgba(10,10,20,0.95) 100%)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Expiry Date</p>
-            <p className="text-[10px] text-slate-500">{expiries.length} dates · up to 2yr</p>
-          </div>
-          <div className="flex items-center justify-center gap-6">
-            <RollingPicker items={expiries} selected={activeExpiry} onChange={setExpiry} formatLabel={fmtExpiry} width={200} />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white font-mono">{dte(activeExpiry)}</p>
-              <p className="text-[10px] text-slate-500">to expiry</p>
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,rgba(13,13,32,0.98) 100%)', padding: '1.5px' }}>
+          <div className="rounded-2xl px-4 py-3 flex items-center gap-4" style={{ background: 'linear-gradient(135deg,rgba(20,16,50,0.97) 0%,rgba(13,13,28,0.99) 100%)' }}>
+            <div className="flex-shrink-0 text-center min-w-[52px]">
+              <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-indigo-400">Expiry</p>
+              <p className="text-xl font-bold font-mono text-white">{dte(activeExpiry)}</p>
+              <p className="text-[9px] text-slate-500">away</p>
+            </div>
+            <div className="w-px self-stretch" style={{ background: 'rgba(99,102,241,0.25)' }} />
+            <div className="flex-1 flex justify-center">
+              <RollingPicker items={expiries} selected={activeExpiry} onChange={setExpiry} formatLabel={fmtExpiry} width={190} />
+            </div>
+            <div className="flex-shrink-0 text-right min-w-[40px]">
+              <p className="text-[9px] text-slate-500">{expiries.length}</p>
+              <p className="text-[9px] text-slate-500">dates</p>
             </div>
           </div>
         </div>
