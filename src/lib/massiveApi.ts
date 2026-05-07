@@ -51,9 +51,9 @@ export interface OptionContract {
   }
   implied_volatility: number  // as decimal e.g. 0.28 = 28%
   open_interest: number
-  day: { o: number; h: number; l: number; c: number; v: number; vw: number }
-  last_quote: { ask: number; ask_size: number; bid: number; bid_size: number; last_updated: number; midpoint: number }
-  last_trade: { price: number; size: number; timestamp: number }
+  day: { o?: number; h?: number; l?: number; c?: number; v?: number; vw?: number; close?: number; vwap?: number; open?: number; high?: number; low?: number; volume?: number; change?: number; change_percent?: number } | null
+  last_quote: { ask: number; ask_size: number; bid: number; bid_size: number; last_updated: number; midpoint: number } | null
+  last_trade: { price: number; size: number; timestamp: number } | null
   underlying_asset: { price: number; ticker: string; timeframe: string }
   break_even_price: number
 }

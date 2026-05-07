@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { useOptionChain, getExpiries, buildChainRows } from '../hooks/useOptionChain'
+import type { OptionContract } from '../lib/massiveApi'
 import { useTickerIV } from '../hooks/useScreener'
 import { RollingPicker } from './RollingPicker'
 
@@ -9,9 +10,20 @@ function fmt(n: number | undefined, dp = 2) {
   if (!n || isNaN(n)) return '—'
   return n.toFixed(dp)
 }
-function fmtP(n: number | undefined) {
+function fmtP(n: number | undefined | null) {
   if (!n || isNaN(n)) return '—'
   return n > 100 ? `$${n.toFixed(2)}` : `$${n.toFixed(3)}`
+}
+
+function getBid(c: OptionContract) {
+  return c.last_quote?.bid || null
+}
+function getAsk(c: OptionContract) {
+  return c.last_quote?.ask || null
+}
+function getLastPrice(c: OptionContract) {
+  // day.close or day.vwap — reliable even outside market hours
+  return (c.day as any)?.close || (c.day as any)?.vwap || c.last_trade?.price || null
 }
 function fmtIV(n: number | undefined) {
   if (!n || isNaN(n)) return '—'
@@ -34,8 +46,21 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
   const { data: contracts = [], isLoading } = useOptionChain(ticker, !!ticker)
   const { data: iv } = useTickerIV(ticker, spotPrice)
 
-  const expiries     = useMemo(() => getExpiries(contracts), [contracts])
-  const activeExpiry = expiry || expiries[0] || ''
+  const expiries = useMemo(() => getExpiries(contracts), [contracts])
+
+  // Default to expiry closest to 10 DTE (ignore 0d expired ones)
+  const defaultExpiry = useMemo(() => {
+    if (!expiries.length) return ''
+    const valid = expiries.filter(e => Math.round((new Date(e).getTime() - Date.now()) / 86_400_000) > 0)
+    if (!valid.length) return expiries[0]
+    return valid.reduce((best, e) => {
+      const dBest = Math.abs(Math.round((new Date(best).getTime() - Date.now()) / 86_400_000) - 10)
+      const dThis = Math.abs(Math.round((new Date(e).getTime()  - Date.now()) / 86_400_000) - 10)
+      return dThis < dBest ? e : best
+    }, valid[0])
+  }, [expiries])
+
+  const activeExpiry = expiry || defaultExpiry
   const rows         = useMemo(() => buildChainRows(contracts, activeExpiry, spotPrice, 6), [contracts, activeExpiry, spotPrice])
 
   return (
@@ -95,15 +120,15 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
           <p className="text-sm text-slate-500">Loading contracts…</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-indigo-900/30 overflow-auto max-h-[62svh] bg-[#0d0d20]">
-          <div style={{ minWidth: 520 }}>
+        <div className="rounded-2xl border border-indigo-900/30 overflow-auto max-h-[62svh] bg-[#0d0d20] no-scrollbar">
+          <div style={{ minWidth: 590 }}>
             {/* Header */}
             <div className="flex border-b border-indigo-900/30 sticky top-0 z-20 bg-[#0a0a18]">
               <div style={{ width: 80, minWidth: 80 }}
                 className="sticky left-0 z-30 px-3 py-2.5 text-center border-r border-indigo-900/30 bg-indigo-950/40">
                 <div className="text-[10px] font-bold text-indigo-400">Strike</div>
               </div>
-              {['Bid', 'Ask', 'IV', 'Δ Delta', 'θ Theta', 'Γ', 'ν Vega', 'OI'].map(h => (
+              {['Last', 'Bid', 'Ask', 'IV', 'Δ Delta', 'θ Theta', 'Γ', 'ν Vega', 'OI'].map(h => (
                 <div key={h} style={{ width: 68, minWidth: 68 }} className="px-2 py-2.5">
                   <div className="text-[10px] font-semibold text-slate-500">{h}</div>
                 </div>
@@ -127,8 +152,12 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
                     {row.isATM && <div className="text-[8px] text-indigo-400 font-bold mt-0.5">ATM</div>}
                   </div>
                   {[
-                    <span className={`font-mono font-semibold ${side === 'call' ? 'text-emerald-400' : 'text-red-400'}`}>{fmtP(c.last_quote?.bid)}</span>,
-                    <span className="text-slate-300 font-mono">{fmtP(c.last_quote?.ask)}</span>,
+                    // Last price (day close / vwap — always available)
+                    <span className={`font-mono font-semibold ${side === 'call' ? 'text-emerald-400' : 'text-red-400'}`}>{fmtP(getLastPrice(c))}</span>,
+                    // Bid — only available during market hours
+                    <span className="text-emerald-300 font-mono">{fmtP(getBid(c))}</span>,
+                    // Ask — only available during market hours
+                    <span className="text-slate-300 font-mono">{fmtP(getAsk(c))}</span>,
                     <span className="text-indigo-300">{fmtIV(c.implied_volatility)}</span>,
                     <span className={side === 'call' ? 'text-emerald-400' : 'text-red-400'}>{fmt(c.greeks?.delta, 3)}</span>,
                     <span className="text-red-400">{fmt(c.greeks?.theta, 3)}</span>,
