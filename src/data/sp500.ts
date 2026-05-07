@@ -116,3 +116,6 @@ export const SP500: SP500Stock[] = [
 export const SECTORS = [...new Set(SP500.map(s => s.sector))].sort()
 
 export const SP500_TICKERS = SP500.map(s => s.ticker)
+
+// Benchmark ETFs fetched alongside S&P 500
+export const BENCHMARKS = ['SPY', 'QQQ', 'IWM']

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchStockSnapshots } from '../lib/massiveApi'
 import { computeIVStats } from '../lib/ivRank'
-import { SP500, type SP500Stock } from '../data/sp500'
+import { SP500, BENCHMARKS, type SP500Stock } from '../data/sp500'
 
 export interface ScreenerRow extends SP500Stock {
   price: number
@@ -20,7 +20,7 @@ export function useScreener(sector = 'All') {
     queryKey: ['screener', sector],
     queryFn: async () => {
       const filtered = sector === 'All' ? SP500 : SP500.filter(s => s.sector === sector)
-      const tickers  = filtered.map(s => s.ticker)
+      const tickers  = [...filtered.map(s => s.ticker), ...BENCHMARKS]
       const snapMap  = await fetchStockSnapshots(tickers)
 
       const rows: ScreenerRow[] = filtered.map(s => {

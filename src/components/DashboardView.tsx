@@ -81,7 +81,9 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
           }} />
         <StatCard label="Avg vs SPY"
           value={`${parseFloat(avgChange) >= 0 ? '+' : ''}${avgChange}%`}
-          sub={spyChange !== null ? `SPY: ${spyChange >= 0 ? '+' : ''}${spyChange.toFixed(2)}% cap-wtd` : 'Equal-weighted avg'}
+          sub={spyChange !== null
+            ? `SPY (cap-wtd): ${spyChange >= 0 ? '+' : ''}${spyChange.toFixed(2)}%`
+            : 'Loading SPY…'}
           icon={<TrendingUp className="w-4 h-4" />}
           color={parseFloat(avgChange) >= 0 ? 'emerald' : 'red'}
           delay={0.1}
