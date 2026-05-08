@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
-import { useStrategyScreener, type StrategyScreenResult, type IVStatsMap } from '../hooks/useStrategyScreener'
+import { useStrategyScreener, type StrategyScreenResult } from '../hooks/useStrategyScreener'
 import type { Thesis } from '../lib/strategyScorer'
+import { useQueryClient } from '@tanstack/react-query'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 interface Props {
   spotPrices: Record<string, number>
-  ivStatsMap: IVStatsMap
   onSelectTicker: (ticker: string) => void
 }
 
@@ -219,26 +219,66 @@ function StrategyCard({ s, spot, onSelectTicker }: {
   )
 }
 
-export function StrategyScreener({ spotPrices, ivStatsMap, onSelectTicker }: Props) {
-  const [thesis, setThesis] = useState<Thesis | 'All'>('All')
-  const [minScore, setMinScore] = useState(55)
+const SCORING_NOTES = [
+  { label: 'PoP', desc: 'Probability of Profit — derived from option delta. 70% means 7 in 10 chance the trade expires profitable.' },
+  { label: 'Yield/yr', desc: 'Annualised return on capital at risk. A CSP collecting $2 on $98 collateral for 30 days = ~24% annualised.' },
+  { label: 'IVR', desc: 'IV Rank — where current IV sits vs recent history. Above 50 = elevated premium, good for selling. Below 30 = cheap vol, good for buying.' },
+  { label: 'IV/HV', desc: 'IV divided by Historical Vol. Above 1.2× means options are pricing more movement than recently realised — edge for premium sellers.' },
+  { label: 'Score', desc: 'Composite 0–100. Weights: IV Rank 25%, IV/HV ratio 25%, annualised yield 25%, PoP 15%, DTE sweet spot 10%.' },
+]
 
-  const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, ivStatsMap, thesis, minScore)
+export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
+  const [thesis, setThesis]       = useState<Thesis | 'All'>('All')
+  const [minScore, setMinScore]   = useState(50)
+  const [showScoring, setScoring] = useState(false)
+  const qc = useQueryClient()
+
+  const { data: strategies = [], isLoading, dataUpdatedAt, refetch } = useStrategyScreener(spotPrices, thesis, minScore)
 
   const filtered = strategies.filter(s => thesis === 'All' || s.thesis === thesis)
 
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
           <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Strategy Screener</h2>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {isLoading ? 'Scanning S&P 500…' : `${filtered.length} plays · score ≥ ${minScore}`}
-            {dataUpdatedAt ? ` · ${new Date(dataUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+            {isLoading ? 'Scanning 20 stocks…' : `${filtered.length} plays · score ≥ ${minScore}`}
+            {!isLoading && dataUpdatedAt ? ` · ${new Date(dataUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
           </p>
         </div>
-        {isLoading && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />}
+        <div className="flex items-center gap-2">
+          {isLoading && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />}
+          {!isLoading && (
+            <button onClick={() => { qc.removeQueries({ queryKey: ['strategy-screener'] }); refetch() }}
+              className="text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
+              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--accent)' }}>
+              Rescan
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Scoring explainer */}
+      <div>
+        <button onClick={() => setScoring(s => !s)}
+          className="text-[11px] flex items-center gap-1.5 font-medium"
+          style={{ color: 'var(--text-muted)' }}>
+          <span style={{ color: 'var(--accent)' }}>{showScoring ? '▾' : '▸'}</span>
+          How scoring works
+        </button>
+        {showScoring && (
+          <div className="mt-2 rounded-2xl p-3 space-y-2"
+            style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)' }}>
+            {SCORING_NOTES.map(n => (
+              <div key={n.label} className="flex gap-2 text-[11px]">
+                <span className="font-bold flex-shrink-0 w-14" style={{ color: 'var(--accent)' }}>{n.label}</span>
+                <span style={{ color: 'var(--text-sub)' }}>{n.desc}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Thesis filter */}

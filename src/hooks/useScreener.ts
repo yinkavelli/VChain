@@ -58,9 +58,7 @@ export function useTickerIV(ticker: string, spotPrice: number, enabled = true) {
 
 // Collect all cached IV stats into a map for the strategy screener
 import { useQueryClient } from '@tanstack/react-query'
-import type { IVStatsMap } from './useStrategyScreener'
-
-export function useIVStatsMap(tickers: string[]): IVStatsMap {
+export function useIVStatsMap(tickers: string[]): Record<string, { iv30: number; ivRank: number; ivHvRatio: number }> {
   const qc = useQueryClient()
   const map: IVStatsMap = {}
   for (const t of tickers) {
