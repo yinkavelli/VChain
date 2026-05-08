@@ -67,7 +67,7 @@ export default function App() {
         <Ticker stocks={stocks.slice(0, 30)} />
       </header>
 
-      <main className="px-4 pt-4 pb-24 max-w-lg mx-auto">
+      <main className="px-4 pt-4 pb-32 max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
             <motion.div key="dashboard"

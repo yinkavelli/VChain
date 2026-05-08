@@ -12,7 +12,7 @@ const TABS = [
 export function BottomNav({ active, onChange }: { active: string; onChange: (t: string) => void }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50"
-      style={{ background: 'var(--bg-nav)', backdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)' }}>
+      style={{ background: 'var(--bg-nav)', backdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex max-w-lg mx-auto">
         {TABS.map(t => {
           const Icon = t.icon
