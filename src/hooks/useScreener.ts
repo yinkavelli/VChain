@@ -60,7 +60,7 @@ export function useTickerIV(ticker: string, spotPrice: number, enabled = true) {
 import { useQueryClient } from '@tanstack/react-query'
 export function useIVStatsMap(tickers: string[]): Record<string, { iv30: number; ivRank: number; ivHvRatio: number }> {
   const qc = useQueryClient()
-  const map: IVStatsMap = {}
+  const map: Record<string, { iv30: number; ivRank: number; ivHvRatio: number }> = {}
   for (const t of tickers) {
     const cached = qc.getQueryData<{ iv30: number; ivRank: number; ivHvRatio: number }>(['iv', t])
     if (cached) map[t] = cached
