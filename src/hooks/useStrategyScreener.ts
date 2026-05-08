@@ -109,12 +109,13 @@ export function useStrategyScreener(
       console.log('[Strategies] DB empty/stale — running live scan')
       const liveResults = await liveScan(spotPrices)
       if (liveResults.length > 0) {
-        // Delete old scans, store fresh ones
         await supabase.from('strategy_scans')
           .delete()
           .lt('scanned_at', new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
-        await supabase.from('strategy_scans')
+        const { error } = await supabase.from('strategy_scans')
           .insert(liveResults.map(s => ({ data: s })))
+        if (error) console.error('[Strategies] DB write failed:', error.message)
+        else console.log(`[Strategies] Saved ${liveResults.length} strategies to DB`)
       }
       return liveResults
     },
