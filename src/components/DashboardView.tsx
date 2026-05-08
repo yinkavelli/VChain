@@ -71,7 +71,7 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Market Mood" value={sentiment}
-          sub={`${advancers} up · ${decliners} down`}
+          sub={`${parseFloat(avgChange) >= 0 ? '+' : ''}${avgChange}% · ${advancers} up · ${decliners} down`}
           icon={<Activity className="w-4 h-4" />}
           color={sentiment === 'Bullish' ? 'emerald' : sentiment === 'Bearish' ? 'red' : 'indigo'}
           delay={0}
