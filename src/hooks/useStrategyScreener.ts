@@ -105,9 +105,18 @@ export function useStrategyScreener(
         console.log(`[Strategies] Loaded ${dbResults.length} from DB (scanned ${scannedAt})`)
         return dbResults
       }
-      // 2. Fall back to live scan
+      // 2. Fall back to live scan — and persist results to DB
       console.log('[Strategies] DB empty/stale — running live scan')
-      return liveScan(spotPrices)
+      const liveResults = await liveScan(spotPrices)
+      if (liveResults.length > 0) {
+        // Delete old scans, store fresh ones
+        await supabase.from('strategy_scans')
+          .delete()
+          .lt('scanned_at', new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
+        await supabase.from('strategy_scans')
+          .insert(liveResults.map(s => ({ data: s })))
+      }
+      return liveResults
     },
     staleTime:       STALE_MINS * 60_000,
     refetchInterval: STALE_MINS * 60_000,
