@@ -1,5 +1,11 @@
 {
   "functions": {
     "api/proxy.js": { "regions": ["iad1"] }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/strategy-scan",
+      "schedule": "*/30 13-21 * * 1-5"
+    }
+  ]
 }

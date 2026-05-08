@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
-import { useStrategyScreener, type StrategyScreenResult } from '../hooks/useStrategyScreener'
+import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
 import type { Thesis } from '../lib/strategyScorer'
-import { useQueryClient } from '@tanstack/react-query'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 interface Props {
@@ -231,9 +230,9 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
   const [thesis, setThesis]       = useState<Thesis | 'All'>('All')
   const [minScore, setMinScore]   = useState(50)
   const [showScoring, setScoring] = useState(false)
-  const qc = useQueryClient()
 
-  const { data: strategies = [], isLoading, dataUpdatedAt, refetch } = useStrategyScreener(spotPrices, thesis, minScore)
+  const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, thesis, minScore)
+  const rescan = useRescan()
 
   const filtered = strategies.filter(s => thesis === 'All' || s.thesis === thesis)
 
@@ -244,14 +243,20 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
         <div>
           <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Strategy Screener</h2>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {isLoading ? 'Scanning 20 stocks…' : `${filtered.length} plays · score ≥ ${minScore}`}
-            {!isLoading && dataUpdatedAt ? ` · ${new Date(dataUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+            {isLoading || rescan.isPending
+              ? 'Scanning 20 stocks…'
+              : `${filtered.length} plays · score ≥ ${minScore}`}
+            {!isLoading && !rescan.isPending && strategies[0]?.scannedAt
+              ? ` · from DB · ${new Date(strategies[0].scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              : !isLoading && !rescan.isPending && dataUpdatedAt
+              ? ` · live · ${new Date(dataUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isLoading && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />}
-          {!isLoading && (
-            <button onClick={() => { qc.removeQueries({ queryKey: ['strategy-screener'] }); refetch() }}
+          {(isLoading || rescan.isPending) && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />}
+          {!isLoading && !rescan.isPending && (
+            <button onClick={() => rescan.mutate()}
               className="text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
               style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--accent)' }}>
               Rescan
