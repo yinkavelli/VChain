@@ -3,10 +3,10 @@ import { supabase, type Trade } from '../lib/supabase'
 
 export function useTrades(userId?: string) {
   return useQuery({
-    queryKey: ['trades', userId],
+    queryKey: ['paper_trades', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('trades')
+        .from('paper_trades')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -21,7 +21,7 @@ export function useBookTrade() {
   return useMutation({
     mutationFn: async (trade: Omit<Trade, 'id' | 'created_at' | 'status'>) => {
       // Use fetch directly to bypass Supabase JS schema cache
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/trades`
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/paper_trades`
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -36,7 +36,7 @@ export function useBookTrade() {
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Insert failed')
       return (Array.isArray(data) ? data[0] : data) as Trade
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['paper_trades'] }),
   })
 }
 
@@ -45,12 +45,12 @@ export function useCloseTrade() {
   return useMutation({
     mutationFn: async ({ id, exit_price }: { id: string; exit_price: number }) => {
       const { error } = await supabase
-        .from('trades')
+        .from('paper_trades')
         .update({ status: 'CLOSED', exit_price, exit_time: new Date().toISOString() })
         .eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['paper_trades'] }),
   })
 }
 
@@ -58,10 +58,10 @@ export function useDeleteTrade() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('trades').delete().eq('id', id)
+      const { error } = await supabase.from('paper_trades').delete().eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['paper_trades'] }),
   })
 }
 
@@ -69,9 +69,9 @@ export function useClearTrades() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.from('trades').delete().eq('user_id', userId)
+      const { error } = await supabase.from('paper_trades').delete().eq('user_id', userId)
       if (error) throw error
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['paper_trades'] }),
   })
 }
