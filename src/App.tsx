@@ -175,7 +175,6 @@ export default function App() {
       {tradeStrategy && (
         <TradeModal
           strategy={tradeStrategy}
-          spot={spotPrices[tradeStrategy.ticker] ?? 0}
           user={user}
           onClose={() => setTradeStrategy(null)}
           onSignIn={() => { setTradeStrategy(null); signInWithGoogle() }}

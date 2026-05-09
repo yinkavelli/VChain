@@ -20,8 +20,8 @@ function calcPnl(trade: Trade, markPrices: Record<string, number>): number {
 
 function buildPayoff(trade: Trade, spot: number) {
   const K    = trade.strike_price
-  const low  = K * 0.75
-  const high = K * 1.25
+  const low  = spot * 0.75
+  const high = spot * 1.25
   return Array.from({ length: 51 }, (_, i) => {
     const price     = low + (i / 50) * (high - low)
     const intrinsic = trade.option_side === 'call' ? Math.max(0, price - K) : Math.max(0, K - price)

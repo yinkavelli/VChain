@@ -7,7 +7,6 @@ import type { StrategyScreenResult } from '../hooks/useStrategyScreener'
 
 interface Props {
   strategy: StrategyScreenResult
-  spot: number
   user: User | null
   onClose: () => void
   onSignIn: () => void
@@ -25,7 +24,7 @@ function thesisColor(thesis: string) {
   return { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.4)', text: '#a5b4fc' }
 }
 
-export function TradeModal({ strategy: s, spot, user, onClose, onSignIn }: Props) {
+export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
   const [qty, setQty]       = useState('1')
   const [status, setStatus] = useState<'idle' | 'confirm' | 'success' | 'error'>('idle')
   const [errMsg, setErrMsg] = useState('')
