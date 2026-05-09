@@ -269,8 +269,11 @@ export default async function handler(req, res) {
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
-  const from = new Date(Date.now() + 18 * 86_400_000).toISOString().slice(0, 10)
-  const to   = new Date(Date.now() + 65 * 86_400_000).toISOString().slice(0, 10)
+  // Snap to today's ET date so window is identical across multiple scans on the same day
+  const etOffset = (() => { const m = new Date().getUTCMonth() + 1; return (m >= 3 && m <= 11) ? 4 : 5 })()
+  const todayET  = new Date(Date.now() - etOffset * 3600_000).toISOString().slice(0, 10)
+  const from = new Date(new Date(todayET).getTime() + 18 * 86_400_000).toISOString().slice(0, 10)
+  const to   = new Date(new Date(todayET).getTime() + 65 * 86_400_000).toISOString().slice(0, 10)
 
   // Fetch spot prices for scan universe
   const spotRes = await fetch(
