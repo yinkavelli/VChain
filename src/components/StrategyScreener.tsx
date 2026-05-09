@@ -68,12 +68,17 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  const [zoom, setZoom] = useState<10 | 15 | 25>(25)
+  const [zoom, setZoom] = useState(25)
   const tc = thesisColor(s.thesis)
   const payoff = buildPayoffData(s, spot, zoom)
   const pnlColor = s.maxProfit > 0 ? '#10b981' : '#f59e0b'
   const ivLow  = +(spot - s.expectedMove).toFixed(2)
   const ivHigh = +(spot + s.expectedMove).toFixed(2)
+
+  function handleWheel(e: React.WheelEvent) {
+    e.preventDefault()
+    setZoom(z => Math.min(40, Math.max(5, z + (e.deltaY > 0 ? 2 : -2))))
+  }
 
   return (
     <motion.div
@@ -177,53 +182,46 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
             className="overflow-hidden border-t"
             style={{ borderColor: tc.border }}>
             <div className="p-4 space-y-3">
-              {/* Breakeven + zoom controls */}
+              {/* Breakeven row */}
               <div className="flex items-center justify-between">
                 <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                   BE: {s.breakevens.map(b => `$${b.toFixed(2)}`).join(' / ')}
                 </span>
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] mr-1" style={{ color: 'var(--text-muted)' }}>Zoom</span>
-                  {([10, 15, 25] as const).map(z => (
-                    <button key={z} onClick={() => setZoom(z)}
-                      className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
-                      style={zoom === z
-                        ? { background: 'var(--accent)', color: '#fff' }
-                        : { background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}>
-                      ±{z}%
-                    </button>
-                  ))}
-                </div>
+                <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                  Scroll to zoom · ±{zoom}%
+                </span>
               </div>
 
-              <ResponsiveContainer width="100%" height={140}>
-                <AreaChart data={payoff} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id={`grad-${s.id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor={pnlColor} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={pnlColor} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="price" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
-                    tickFormatter={v => `$${v}`} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
-                    tickFormatter={v => v >= 0 ? `+$${v}` : `-$${Math.abs(v)}`} width={46} />
-                  <Tooltip contentStyle={{ background: '#0d0d20', border: '1px solid #1e1e3f', borderRadius: 8, fontSize: 10 }}
-                    formatter={(v) => { const n = Number(v); return [n >= 0 ? `+$${n}` : `-$${Math.abs(n)}`, 'P&L'] }}
-                    labelFormatter={v => `Spot $${v}`} />
-                  {/* IV-implied 1SD price range band */}
-                  <ReferenceArea x1={ivLow} x2={ivHigh} fill="rgba(99,102,241,0.08)" stroke="rgba(99,102,241,0.25)" strokeDasharray="3 2" />
-                  <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
-                  <ReferenceLine x={spot} stroke="#6366f1" strokeWidth={1.5}
-                    label={{ value: `$${spot.toFixed(0)}`, position: 'top', fontSize: 8, fill: '#6366f1' }} />
-                  {s.breakevens.map((b, i) => (
-                    <ReferenceLine key={i} x={+b.toFixed(2)} stroke="#f59e0b" strokeDasharray="3 2"
-                      label={{ value: 'BE', position: 'insideTopRight', fontSize: 7, fill: '#f59e0b' }} />
-                  ))}
-                  <Area type="monotone" dataKey="pnl" stroke={pnlColor} strokeWidth={2}
-                    fill={`url(#grad-${s.id})`} dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div onWheel={handleWheel} style={{ touchAction: 'none' }}>
+                <ResponsiveContainer width="100%" height={140}>
+                  <AreaChart data={payoff} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id={`grad-${s.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={pnlColor} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={pnlColor} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="price" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
+                      tickFormatter={v => `$${v}`} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
+                      tickFormatter={v => v >= 0 ? `+$${v}` : `-$${Math.abs(v)}`} width={46} />
+                    <Tooltip contentStyle={{ background: '#0d0d20', border: '1px solid #1e1e3f', borderRadius: 8, fontSize: 10 }}
+                      formatter={(v) => { const n = Number(v); return [n >= 0 ? `+$${n}` : `-$${Math.abs(n)}`, 'P&L'] }}
+                      labelFormatter={v => `Spot $${v}`} />
+                    {/* IV-implied 1SD price range — render before Area so it sits behind */}
+                    <ReferenceArea x1={ivLow} x2={ivHigh} fill="rgba(99,102,241,0.18)" stroke="rgba(99,102,241,0.45)" strokeDasharray="4 2" ifOverflow="visible" />
+                    <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
+                    <ReferenceLine x={spot} stroke="#6366f1" strokeWidth={1.5}
+                      label={{ value: `$${spot.toFixed(0)}`, position: 'top', fontSize: 8, fill: '#6366f1' }} />
+                    {s.breakevens.map((b, i) => (
+                      <ReferenceLine key={i} x={+b.toFixed(2)} stroke="#f59e0b" strokeDasharray="3 2"
+                        label={{ value: 'BE', position: 'insideTopRight', fontSize: 7, fill: '#f59e0b' }} />
+                    ))}
+                    <Area type="monotone" dataKey="pnl" stroke={pnlColor} strokeWidth={2}
+                      fill={`url(#grad-${s.id})`} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
 
               {/* IV band legend */}
               <div className="flex items-center justify-between text-[10px]">
