@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Clock, CheckCircle, LogIn, Trash2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Clock, CheckCircle, LogIn, Trash2, Zap } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { User } from '@supabase/supabase-js'
 import { useTrades, useCloseTrade, useDeleteTrade, useClearTrades } from '../hooks/useTrades'
+import { useLivePnL, type TradePnL } from '../hooks/useLivePnL'
 import type { Trade } from '../lib/supabase'
 
 interface Props {
@@ -29,7 +30,7 @@ function buildPayoff(trade: Trade, spot: number) {
   })
 }
 
-function OpenCard({ trade, spot, onClose, onDelete }: { trade: Trade; spot: number; onClose: (id: string) => void; onDelete: (id: string) => void }) {
+function OpenCard({ trade, spot, pnl, onClose, onDelete }: { trade: Trade; spot: number; pnl?: TradePnL; onClose: (id: string) => void; onDelete: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const maxProfit = (trade.strategy_data?.max_profit ?? 0) * trade.quantity
   const maxLoss   = (trade.strategy_data?.max_loss   ?? 0) * trade.quantity
@@ -54,10 +55,28 @@ function OpenCard({ trade, spot, onClose, onDelete }: { trade: Trade; spot: numb
               {trade.quantity} contract{trade.quantity > 1 ? 's' : ''} · {trade.strategy_data?.dte ?? '—'}d DTE · {new Date(trade.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>Max profit / loss</p>
-            <p className="text-xs font-mono font-semibold text-emerald-400">+${maxProfit.toFixed(0)}</p>
-            <p className="text-xs font-mono font-semibold text-red-400">-${maxLoss.toFixed(0)}</p>
+          <div className="text-right space-y-1">
+            {pnl?.totalPnL != null ? (
+              <div className="flex items-center justify-end gap-1 rounded-lg px-2 py-1"
+                style={{
+                  background: pnl.totalPnL >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+                  border: `1px solid ${pnl.totalPnL >= 0 ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                }}>
+                <Zap className="w-3 h-3" style={{ color: pnl.totalPnL >= 0 ? '#10b981' : '#ef4444' }} />
+                <span className="text-xs font-mono font-bold" style={{ color: pnl.totalPnL >= 0 ? '#10b981' : '#ef4444' }}>
+                  {pnl.totalPnL >= 0 ? '+' : ''}${pnl.totalPnL.toFixed(0)}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-end gap-1 rounded-lg px-2 py-1"
+                style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <Zap className="w-3 h-3 opacity-40" style={{ color: '#a5b4fc' }} />
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Live P&L</span>
+              </div>
+            )}
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+              Max: <span className="text-emerald-400">+${maxProfit.toFixed(0)}</span> / <span className="text-red-400">-${maxLoss.toFixed(0)}</span>
+            </p>
           </div>
         </div>
 
@@ -184,9 +203,19 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
   const open   = trades.filter(t => t.status === 'OPEN')
   const closed = trades.filter(t => t.status === 'CLOSED')
 
+  const { data: livePnL, isFetching: pnlFetching } = useLivePnL(trades)
+
   const totalMaxProfit = open.reduce((s, t) => s + (t.strategy_data?.max_profit ?? 0) * t.quantity, 0)
   const totalMaxLoss   = open.reduce((s, t) => s + (t.strategy_data?.max_loss   ?? 0) * t.quantity, 0)
   const realisedPnl    = closed.reduce((s, t) => s + (t.exit_price ?? 0) * t.quantity, 0)
+
+  const totalLivePnL = livePnL
+    ? open.reduce((s, t) => {
+        const p = livePnL[t.id]?.totalPnL
+        return p != null ? s + p : s
+      }, 0)
+    : null
+  const hasAnyLivePnL = livePnL && open.some(t => livePnL[t.id]?.totalPnL != null)
 
   function handleClose(id: string) {
     closeTrade.mutate({ id, exit_price: 0 })
@@ -267,27 +296,59 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-3 col-span-2 flex justify-between items-center"
+        <div className="rounded-2xl p-3 col-span-2"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <div>
-            <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>Open exposure</p>
-            <p className="text-xs font-mono">
-              <span className="text-emerald-400 font-semibold">+${totalMaxProfit.toFixed(0)}</span>
-              <span style={{ color: 'var(--text-muted)' }}> / </span>
-              <span className="text-red-400 font-semibold">-${totalMaxLoss.toFixed(0)}</span>
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
-            {realisedPnl >= 0
-              ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-              : <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
-            <div className="text-right">
-              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Realised</p>
-              <p className="text-xs font-mono font-semibold" style={{ color: realisedPnl >= 0 ? '#10b981' : '#ef4444' }}>
-                {realisedPnl >= 0 ? '+' : ''}${realisedPnl.toFixed(0)}
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>Open exposure (max)</p>
+              <p className="text-xs font-mono">
+                <span className="text-emerald-400 font-semibold">+${totalMaxProfit.toFixed(0)}</span>
+                <span style={{ color: 'var(--text-muted)' }}> / </span>
+                <span className="text-red-400 font-semibold">-${totalMaxLoss.toFixed(0)}</span>
               </p>
             </div>
+            <div className="flex items-center gap-1">
+              {realisedPnl >= 0
+                ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                : <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
+              <div className="text-right">
+                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Realised</p>
+                <p className="text-xs font-mono font-semibold" style={{ color: realisedPnl >= 0 ? '#10b981' : '#ef4444' }}>
+                  {realisedPnl >= 0 ? '+' : ''}${realisedPnl.toFixed(0)}
+                </p>
+              </div>
+            </div>
           </div>
+          {open.length > 0 && (
+            <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+              style={{ background: hasAnyLivePnL && totalLivePnL != null
+                ? (totalLivePnL >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)')
+                : 'rgba(99,102,241,0.08)',
+                border: hasAnyLivePnL && totalLivePnL != null
+                  ? (totalLivePnL >= 0 ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)')
+                  : '1px solid rgba(99,102,241,0.2)'
+              }}>
+              <Zap className={`w-3.5 h-3.5 flex-shrink-0 ${pnlFetching ? 'animate-pulse' : ''}`}
+                style={{ color: hasAnyLivePnL && totalLivePnL != null
+                  ? (totalLivePnL >= 0 ? '#10b981' : '#ef4444')
+                  : '#a5b4fc' }} />
+              <div className="flex-1 flex items-center justify-between">
+                <span className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
+                  Live P&L {pnlFetching ? '(updating…)' : ''}
+                </span>
+                {hasAnyLivePnL && totalLivePnL != null ? (
+                  <span className="text-sm font-mono font-bold"
+                    style={{ color: totalLivePnL >= 0 ? '#10b981' : '#ef4444' }}>
+                    {totalLivePnL >= 0 ? '+' : ''}${totalLivePnL.toFixed(0)}
+                  </span>
+                ) : (
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    {pnlFetching ? 'Fetching…' : 'No live prices available'}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         {[
           { label: 'Open positions', value: open.length,   color: '#6366f1' },
@@ -321,7 +382,8 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
         ) : (
           <div className="space-y-3">
             {open.map(t => (
-              <OpenCard key={t.id} trade={t} spot={spotPrices[t.ticker] ?? 0} onClose={handleClose} onDelete={handleDelete} />
+              <OpenCard key={t.id} trade={t} spot={spotPrices[t.ticker] ?? 0}
+                pnl={livePnL?.[t.id]} onClose={handleClose} onDelete={handleDelete} />
             ))}
           </div>
         )
