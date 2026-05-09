@@ -239,7 +239,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
     ? `✗ ${(rescan.error as Error)?.message ?? 'Failed'}`
     : ''
 
-  const filtered = strategies.filter(s => thesis === 'All' || s.thesis === thesis)
+  const filtered = strategies.filter(s => (thesis === 'All' || s.thesis === thesis) && s.score >= minScore)
 
   return (
     <div className="space-y-4">
