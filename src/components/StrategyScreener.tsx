@@ -48,13 +48,13 @@ function buildPayoffData(s: StrategyScreenResult, spot: number) {
     const price = low + (i / steps) * (high - low)
     let pnl = 0
     for (const leg of s.legs) {
-      const K = leg.contract.details.strike_price
-      const type = leg.contract.details.contract_type
-      let intrinsic = type === 'call' ? Math.max(0, price - K) : Math.max(0, K - price)
-      const legPnl = leg.action === 'SELL'
+      // Support both DB format (strike/type) and live format (contract.details)
+      const K    = (leg as any).strike ?? leg.contract?.details?.strike_price ?? 0
+      const type = ((leg as any).type ?? leg.contract?.details?.contract_type ?? 'call').toLowerCase()
+      const intrinsic = type === 'call' ? Math.max(0, price - K) : Math.max(0, K - price)
+      pnl += leg.action === 'SELL'
         ? (leg.price - intrinsic) * 100
         : (intrinsic - leg.price) * 100
-      pnl += legPnl
     }
     return { price: +price.toFixed(2), pnl: +pnl.toFixed(2) }
   })
@@ -122,7 +122,7 @@ function StrategyCard({ s, spot, onSelectTicker }: {
                   {leg.action}
                 </span>
                 <span style={{ color: 'var(--text-sub)' }}>
-                  ${leg.contract.details.strike_price} {leg.contract.details.contract_type.toUpperCase()} · {leg.contract.details.expiration_date.slice(5)} · {s.dte}d
+                  ${((leg as any).strike ?? leg.contract?.details?.strike_price ?? 0)} {((leg as any).type ?? leg.contract?.details?.contract_type ?? '').toUpperCase()} · {((leg as any).expiry ?? leg.contract?.details?.expiration_date ?? '').slice(5)} · {s.dte}d
                 </span>
               </div>
               <span className="font-mono" style={{ color: 'var(--text-muted)' }}>${leg.price.toFixed(3)}</span>
