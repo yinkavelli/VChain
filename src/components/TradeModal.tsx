@@ -55,11 +55,15 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
         user_id:       user.id,
         ticker:        s.ticker,
         strategy_type: s.type,
-        strategy_data: { legs, dte: s.dte, breakevens: s.breakevens },
-        quantity:      qty,
-        entry_price:   netCredit,
-        max_profit:    +(netCredit * 100).toFixed(2),
-        max_loss:      +(maxLoss   * 100).toFixed(2),
+        strategy_data: {
+          legs,
+          dte:        s.dte,
+          breakevens: s.breakevens,
+          max_profit: +(netCredit * 100).toFixed(2),
+          max_loss:   +(maxLoss   * 100).toFixed(2),
+        },
+        quantity:     qty,
+        entry_price:  netCredit,
       })
       setStatus('success')
     } catch (e: any) {

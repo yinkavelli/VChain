@@ -18,11 +18,9 @@ export type Trade = {
   user_id: string
   ticker: string
   strategy_type: string
-  strategy_data: { legs: TradeLeg[]; dte: number; breakevens: number[] }
+  strategy_data: { legs: TradeLeg[]; dte: number; breakevens: number[]; max_profit: number; max_loss: number }
   quantity: number
-  entry_price: number   // net credit (positive) or debit (negative) per share
-  max_profit: number    // per contract in dollars
-  max_loss: number      // per contract in dollars (positive number)
+  entry_price: number
   status: 'OPEN' | 'CLOSED'
   exit_price?: number
   exit_time?: string

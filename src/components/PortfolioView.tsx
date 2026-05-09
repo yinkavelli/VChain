@@ -31,8 +31,8 @@ function buildPayoff(trade: Trade, spot: number) {
 
 function OpenCard({ trade, spot, onClose, onDelete }: { trade: Trade; spot: number; onClose: (id: string) => void; onDelete: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
-  const maxProfit = trade.max_profit * trade.quantity
-  const maxLoss   = trade.max_loss   * trade.quantity
+  const maxProfit = (trade.strategy_data?.max_profit ?? 0) * trade.quantity
+  const maxLoss   = (trade.strategy_data?.max_loss   ?? 0) * trade.quantity
   const payoff    = expanded ? buildPayoff(trade, spot) : []
   const legs      = trade.strategy_data?.legs ?? []
   const breakevens = trade.strategy_data?.breakevens ?? []
@@ -184,8 +184,8 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
   const open   = trades.filter(t => t.status === 'OPEN')
   const closed = trades.filter(t => t.status === 'CLOSED')
 
-  const totalMaxProfit = open.reduce((s, t) => s + t.max_profit * t.quantity, 0)
-  const totalMaxLoss   = open.reduce((s, t) => s + t.max_loss   * t.quantity, 0)
+  const totalMaxProfit = open.reduce((s, t) => s + (t.strategy_data?.max_profit ?? 0) * t.quantity, 0)
+  const totalMaxLoss   = open.reduce((s, t) => s + (t.strategy_data?.max_loss   ?? 0) * t.quantity, 0)
   const realisedPnl    = closed.reduce((s, t) => s + (t.exit_price ?? 0) * t.quantity, 0)
 
   function handleClose(id: string) {
