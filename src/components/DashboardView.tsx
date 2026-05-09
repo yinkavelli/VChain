@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchStockSnapshots } from '../lib/massiveApi'
+import { fetchStockSnapshots, fetchMarketMovers } from '../lib/massiveApi'
 import { motion } from 'framer-motion'
-import { Activity, TrendingUp, BarChart2, Zap } from 'lucide-react'
+import { Activity, TrendingUp, BarChart2, Zap, Circle } from 'lucide-react'
 import { StatCard } from './StatCard'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import type { ScreenerRow } from '../hooks/useScreener'
+import { useMarketStatus } from '../hooks/useMarketStatus'
 
 interface Props {
   stocks: ScreenerRow[]
@@ -19,11 +20,26 @@ function fmtPrice(n: number) {
 }
 
 export function DashboardView({ stocks, onSelectTicker }: Props) {
-  const gainers = useMemo(() =>
-    [...stocks].sort((a, b) => b.changePct - a.changePct).slice(0, 5), [stocks])
+  const { data: marketStatus } = useMarketStatus()
 
-  const losers = useMemo(() =>
-    [...stocks].sort((a, b) => a.changePct - b.changePct).slice(0, 5), [stocks])
+  const { data: marketGainers = [] } = useQuery({
+    queryKey: ['market-gainers'],
+    queryFn: () => fetchMarketMovers('gainers'),
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+  })
+
+  const { data: marketLosers = [] } = useQuery({
+    queryKey: ['market-losers'],
+    queryFn: () => fetchMarketMovers('losers'),
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+  })
+
+  const fallbackGainers = useMemo(() => [...stocks].sort((a, b) => b.changePct - a.changePct).slice(0, 8), [stocks])
+  const fallbackLosers  = useMemo(() => [...stocks].sort((a, b) => a.changePct - b.changePct).slice(0, 8), [stocks])
+  const gainers = marketGainers.length > 0 ? marketGainers : fallbackGainers
+  const losers  = marketLosers.length  > 0 ? marketLosers  : fallbackLosers
 
   const { data: benchmarks } = useQuery({
     queryKey: ['benchmarks'],
@@ -66,8 +82,21 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
     </div>
   )
 
+  const statusColor = marketStatus?.market === 'open' ? '#10b981'
+    : marketStatus?.market === 'extended-hours' ? '#f59e0b' : '#ef4444'
+  const statusLabel = marketStatus?.market === 'open' ? 'Market Open'
+    : marketStatus?.market === 'extended-hours' ? 'Extended Hours' : 'Market Closed'
+
   return (
     <div className="space-y-5">
+      {/* Market status pill */}
+      {marketStatus && (
+        <div className="flex items-center justify-end gap-1.5">
+          <Circle className="w-2 h-2 fill-current" style={{ color: statusColor }} />
+          <span className="text-[11px] font-medium" style={{ color: statusColor }}>{statusLabel}</span>
+        </div>
+      )}
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Market Mood" value={sentiment}
@@ -154,51 +183,40 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
 
       {/* Top movers */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Gainers */}
-        <div>
-          <p className="text-xs font-semibold text-emerald-500 mb-2">Top Gainers</p>
-          <div className="space-y-1.5">
-            {gainers.map((s, i) => (
-              <motion.button key={s.ticker}
-                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04 }}
-                onClick={() => onSelectTicker(s.ticker)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors"
-      style={{ background: 'var(--bg-card)', border: '1px solid rgba(16,185,129,0.2)' }}>
-                <div className="text-left">
-                  <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{s.ticker}</p>
-                  <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(s.price)}</p>
-                </div>
-                <span className="text-xs font-mono font-bold text-emerald-500">
-                  +{s.changePct.toFixed(2)}%
-                </span>
-              </motion.button>
-            ))}
+        {[
+          { label: 'Top Gainers', list: gainers, accent: 'rgba(16,185,129,0.2)', textColor: 'text-emerald-500', sign: '+' },
+          { label: 'Top Losers',  list: losers,  accent: 'rgba(239,68,68,0.2)',  textColor: 'text-red-400',    sign: '' },
+        ].map(({ label, list, accent, textColor, sign }) => (
+          <div key={label}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-semibold ${textColor}`}>{label}</p>
+              {marketGainers.length > 0 && <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>full market</span>}
+            </div>
+            <div className="space-y-1.5">
+              {(list as any[]).map((s, i) => {
+                const ticker  = s.ticker
+                const price   = s.day?.c ?? s.price ?? 0
+                const pct     = s.todaysChangePerc ?? s.changePct ?? 0
+                return (
+                  <motion.button key={ticker}
+                    initial={{ opacity: 0, x: sign === '+' ? -8 : 8 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    onClick={() => onSelectTicker(ticker)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl"
+                    style={{ background: 'var(--bg-card)', border: `1px solid ${accent}` }}>
+                    <div className="text-left">
+                      <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{ticker}</p>
+                      <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(price)}</p>
+                    </div>
+                    <span className={`text-xs font-mono font-bold ${textColor}`}>
+                      {sign}{pct.toFixed(2)}%
+                    </span>
+                  </motion.button>
+                )
+              })}
+            </div>
           </div>
-        </div>
-
-        {/* Losers */}
-        <div>
-          <p className="text-xs font-semibold text-red-400 mb-2">Top Losers</p>
-          <div className="space-y-1.5">
-            {losers.map((s, i) => (
-              <motion.button key={s.ticker}
-                initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04 }}
-                onClick={() => onSelectTicker(s.ticker)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors"
-      style={{ background: 'var(--bg-card)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                <div className="text-left">
-                  <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{s.ticker}</p>
-                  <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(s.price)}</p>
-                </div>
-                <span className="text-xs font-mono font-bold text-red-400">
-                  {s.changePct.toFixed(2)}%
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   )

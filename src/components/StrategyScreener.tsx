@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
+import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles, Calendar, DollarSign } from 'lucide-react'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
+import { useTickerEnrichment, type TickerEnrichment } from '../hooks/useTickerEnrichment'
 import type { Thesis } from '../lib/strategyScorer'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea } from 'recharts'
 
@@ -9,6 +10,10 @@ interface Props {
   spotPrices: Record<string, number>
   onSelectTicker: (ticker: string) => void
   onTrade: (s: StrategyScreenResult) => void
+}
+
+function daysUntil(dateStr: string): number {
+  return Math.round((new Date(dateStr).getTime() - Date.now()) / 86_400_000)
 }
 
 const THESIS_TABS: (Thesis | 'All')[] = ['All', 'Sell Premium', 'Bullish', 'Bearish', 'Buy Vol', 'Neutral']
@@ -61,9 +66,10 @@ function buildPayoffData(s: StrategyScreenResult, spot: number) {
   })
 }
 
-function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
+function StrategyCard({ s, spot, enrichment, onSelectTicker, onTrade }: {
   s: StrategyScreenResult
   spot: number
+  enrichment?: TickerEnrichment
   onSelectTicker: (t: string) => void
   onTrade: (s: StrategyScreenResult) => void
 }) {
@@ -122,6 +128,12 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   const ivLow    = +(spot - s.expectedMove).toFixed(2)
   const ivHigh   = +(spot + s.expectedMove).toFixed(2)
 
+  const earningsDays = enrichment?.earningsDate ? daysUntil(enrichment.earningsDate) : null
+  const earningsInWindow = earningsDays !== null && earningsDays >= 0 && earningsDays <= s.dte
+  const divDays = enrichment?.dividend?.exDate ? daysUntil(enrichment.dividend.exDate) : null
+  const divInWindow = divDays !== null && divDays >= 0 && divDays <= s.dte
+  const rsi = enrichment?.rsi ?? null
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -153,16 +165,37 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
               )}
             </div>
             <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{s.edge}</p>
+            {/* Event badges */}
+            {(earningsInWindow || divInWindow) && (
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                {earningsInWindow && (
+                  <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                    style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
+                    <Calendar className="w-2.5 h-2.5" />
+                    Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
+                  </span>
+                )}
+                {divInWindow && (
+                  <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                    style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+                    <DollarSign className="w-2.5 h-2.5" />
+                    Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`} (${enrichment!.dividend!.amount.toFixed(2)})
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
+
         {/* Key metrics */}
-        <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="grid grid-cols-5 gap-1.5 mb-3">
           {[
-            { label: 'PoP', value: `${s.pop}%`, color: s.pop > 65 ? '#10b981' : '#f59e0b' },
+            { label: 'PoP',      value: `${s.pop}%`,                                            color: s.pop > 65 ? '#10b981' : '#f59e0b' },
             { label: 'Yield/yr', value: s.premiumYield > 0 ? `${s.premiumYield.toFixed(0)}%` : '—', color: '#6366f1' },
-            { label: 'IVR', value: s.ivRank > 0 ? String(s.ivRank) : '~', color: s.ivRank > 50 ? '#10b981' : '#94a3b8' },
-            { label: 'IV/HV', value: s.ivHvRatio > 0 ? `${s.ivHvRatio.toFixed(2)}×` : '—', color: s.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' },
+            { label: 'IVR',      value: s.ivRank > 0 ? String(s.ivRank) : '~',                 color: s.ivRank > 50 ? '#10b981' : '#94a3b8' },
+            { label: 'IV/HV',    value: s.ivHvRatio > 0 ? `${s.ivHvRatio.toFixed(2)}×` : '—', color: s.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' },
+            { label: 'RSI',      value: rsi !== null ? rsi.toFixed(0) : '—',                   color: rsi === null ? '#94a3b8' : rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' },
           ].map(m => (
             <div key={m.label} className="rounded-xl px-2 py-1.5 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
@@ -357,13 +390,14 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props)
 
   const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, thesis, minScore)
   const rescan = useRescan()
+  const filtered = strategies.filter(s => (thesis === 'All' || s.thesis === thesis) && s.score >= minScore)
+  const visibleTickers = [...new Set(filtered.slice(0, 20).map(s => s.ticker))]
+  const { data: enrichmentMap } = useTickerEnrichment(visibleTickers)
   const scanMsg = rescan.isSuccess
     ? `✓ Saved ${(rescan.data as any)?.saved ?? 0}`
     : rescan.isError
     ? `✗ ${(rescan.error as Error)?.message ?? 'Failed'}`
     : ''
-
-  const filtered = strategies.filter(s => (thesis === 'All' || s.thesis === thesis) && s.score >= minScore)
 
   return (
     <div className="space-y-4">
@@ -484,6 +518,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props)
               key={s.id}
               s={s}
               spot={spotPrices[s.ticker] ?? 0}
+              enrichment={enrichmentMap?.[s.ticker]}
               onSelectTicker={onSelectTicker}
               onTrade={onTrade}
             />

@@ -180,6 +180,91 @@ export async function fetchTickerDetails(ticker: string): Promise<TickerDetails 
   } catch { return null }
 }
 
+// ── Market status ─────────────────────────────────────────────────────
+
+export interface MarketStatus {
+  market: 'open' | 'closed' | 'extended-hours'
+  serverTime: string
+  exchanges: { nyse?: string; nasdaq?: string }
+}
+
+export async function fetchMarketStatus(): Promise<MarketStatus | null> {
+  try {
+    return await get<MarketStatus>('/v1/marketstatus/now')
+  } catch { return null }
+}
+
+// ── Earnings calendar ─────────────────────────────────────────────────
+
+export async function fetchNextEarnings(ticker: string): Promise<string | null> {
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const data = await get<{ results: { events?: Array<{ type: string; date?: string; earnings?: { expected_report_date?: string } }> } }>(
+      `/vX/reference/tickers/${ticker}/events`,
+      { types: 'earnings', limit: '5' }
+    )
+    const events = data.results?.events ?? []
+    const upcoming = events
+      .filter(e => e.type === 'earnings')
+      .map(e => e.earnings?.expected_report_date ?? e.date ?? '')
+      .filter(d => d >= today)
+      .sort()
+    return upcoming[0] ?? null
+  } catch { return null }
+}
+
+// ── Dividends ─────────────────────────────────────────────────────────
+
+export interface DividendInfo {
+  exDate: string
+  amount: number
+}
+
+export async function fetchNextDividend(ticker: string): Promise<DividendInfo | null> {
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const data = await get<{ results: Array<{ ex_dividend_date: string; cash_amount: number }> }>(
+      '/v3/reference/dividends',
+      { ticker, 'ex_dividend_date.gte': today, order: 'asc', limit: '1' }
+    )
+    const div = data.results?.[0]
+    if (!div) return null
+    return { exDate: div.ex_dividend_date, amount: div.cash_amount }
+  } catch { return null }
+}
+
+// ── RSI (14-day) ──────────────────────────────────────────────────────
+
+export async function fetchRSI(ticker: string): Promise<number | null> {
+  try {
+    const data = await get<{ results: { values: Array<{ value: number }> } }>(
+      `/v1/indicators/rsi/${ticker}`,
+      { timespan: 'day', window: '14', series_type: 'close', limit: '1', order: 'desc' }
+    )
+    return data.results?.values?.[0]?.value ?? null
+  } catch { return null }
+}
+
+// ── Full-market gainers / losers ───────────────────────────────────────
+
+export interface MoverSnapshot {
+  ticker: string
+  todaysChangePerc: number
+  todaysChange: number
+  day: { c: number }
+  prevDay: { c: number }
+}
+
+export async function fetchMarketMovers(direction: 'gainers' | 'losers'): Promise<MoverSnapshot[]> {
+  try {
+    const data = await get<{ tickers: MoverSnapshot[] }>(
+      `/v2/snapshot/locale/us/markets/stocks/${direction}`,
+      { include_otc: 'false' }
+    )
+    return (data.tickers ?? []).slice(0, 8)
+  } catch { return [] }
+}
+
 // ── Related news ──────────────────────────────────────────────────────
 
 export interface NewsItem {
