@@ -29,7 +29,7 @@ async function fetchFromDB(): Promise<{ results: StrategyScreenResult[]; scanned
     .from('strategy_scans')
     .select('data, scanned_at')
     .order('scanned_at', { ascending: false })
-    .limit(60)
+    .limit(200)
 
   if (error || !data?.length) return { results: [], scannedAt: null }
 
@@ -38,7 +38,9 @@ async function fetchFromDB(): Promise<{ results: StrategyScreenResult[]; scanned
 
   if (ageMins > STALE_MINS) return { results: [], scannedAt: latestScan }
 
-  const results = data.map(row => withMeta(row.data as ScoredStrategy, row.scanned_at))
+  const results = data
+    .map(row => withMeta(row.data as ScoredStrategy, row.scanned_at))
+    .sort((a, b) => b.score - a.score)
   return { results, scannedAt: latestScan }
 }
 
