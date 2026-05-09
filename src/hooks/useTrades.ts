@@ -20,13 +20,21 @@ export function useBookTrade() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (trade: Omit<Trade, 'id' | 'created_at' | 'status'>) => {
-      const { data, error } = await supabase
-        .from('trades')
-        .insert({ ...trade, status: 'OPEN' })
-        .select()
-        .single()
-      if (error) throw error
-      return data as Trade
+      // Use fetch directly to bypass Supabase JS schema cache
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/trades`
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'apikey':       import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer':       'return=representation',
+        },
+        body: JSON.stringify({ ...trade, status: 'OPEN' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message ?? data.error ?? 'Insert failed')
+      return (Array.isArray(data) ? data[0] : data) as Trade
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
   })
