@@ -138,14 +138,22 @@ export function useRescan() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async () => {
+      console.log('[Rescan] Calling /api/scan...')
       const res = await fetch('/api/scan?force=1', {
         headers: { Authorization: `Bearer ${import.meta.env.VITE_CRON_SECRET}` },
       })
-      if (!res.ok) throw new Error('Scan failed')
-      return res.json()
+      const data = await res.json()
+      console.log('[Rescan] Response:', res.status, JSON.stringify(data))
+      if (!res.ok) throw new Error(data.error || 'Scan failed')
+      return data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[Rescan] Success, invalidating cache. Saved:', data.saved)
+      qc.removeQueries({ queryKey: ['strategy-screener'] })
       qc.invalidateQueries({ queryKey: ['strategy-screener'] })
     },
+    onError: (err) => {
+      console.error('[Rescan] Failed:', err.message)
+    }
   })
 }
