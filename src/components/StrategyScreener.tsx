@@ -231,6 +231,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
   const [minScore, setMinScore]   = useState(50)
   const [showScoring, setScoring] = useState(false)
 
+  const [scanMsg, setScanMsg] = useState('')
   const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, thesis, minScore)
   const rescan = useRescan()
 
@@ -256,7 +257,10 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
         <div className="flex items-center gap-2">
           {(isLoading || rescan.isPending) && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />}
           {!isLoading && !rescan.isPending && (
-            <button onClick={() => rescan.mutate()}
+            <button onClick={() => rescan.mutate(undefined, {
+              onSuccess: (d) => setScanMsg(`✓ Saved ${d.saved ?? 0} strategies`),
+              onError: (e) => setScanMsg(`✗ ${e.message}`),
+            })}
               className="text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
               style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--accent)' }}>
               Rescan
@@ -264,6 +268,13 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
           )}
         </div>
       </div>
+
+      {/* Scan result message */}
+      {scanMsg && (
+        <p className="text-xs px-1" style={{ color: scanMsg.startsWith('✓') ? '#10b981' : '#ef4444' }}>
+          {scanMsg}
+        </p>
+      )}
 
       {/* Scoring explainer */}
       <div>
