@@ -45,3 +45,25 @@ export function useCloseTrade() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
   })
 }
+
+export function useDeleteTrade() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('trades').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
+  })
+}
+
+export function useClearTrades() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.from('trades').delete().eq('user_id', userId)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trades'] }),
+  })
+}

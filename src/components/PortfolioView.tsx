@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Clock, CheckCircle, LogIn } from 'lucide-react'
+import { TrendingUp, TrendingDown, Clock, CheckCircle, LogIn, Trash2 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { User } from '@supabase/supabase-js'
-import { useTrades, useCloseTrade } from '../hooks/useTrades'
+import { useTrades, useCloseTrade, useDeleteTrade, useClearTrades } from '../hooks/useTrades'
 import type { Trade } from '../lib/supabase'
 
 interface Props {
@@ -29,7 +29,7 @@ function buildPayoff(trade: Trade, spot: number) {
   })
 }
 
-function OpenCard({ trade, spot, onClose }: { trade: Trade; spot: number; onClose: (id: string) => void }) {
+function OpenCard({ trade, spot, onClose, onDelete }: { trade: Trade; spot: number; onClose: (id: string) => void; onDelete: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const maxProfit = trade.max_profit * trade.quantity
   const maxLoss   = trade.max_loss   * trade.quantity
@@ -98,6 +98,12 @@ function OpenCard({ trade, spot, onClose }: { trade: Trade; spot: number; onClos
             style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
             Close position
           </button>
+          <button onClick={() => onDelete(trade.id)}
+            className="w-8 flex items-center justify-center rounded-xl"
+            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}
+            title="Delete trade">
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+          </button>
         </div>
       </div>
 
@@ -136,7 +142,7 @@ function OpenCard({ trade, spot, onClose }: { trade: Trade; spot: number; onClos
   )
 }
 
-function ClosedCard({ trade }: { trade: Trade }) {
+function ClosedCard({ trade, onDelete }: { trade: Trade; onDelete: (id: string) => void }) {
   const pnl      = trade.exit_price != null ? trade.exit_price * trade.quantity : 0
   const isProfit = pnl >= 0
   return (
@@ -159,6 +165,9 @@ function ClosedCard({ trade }: { trade: Trade }) {
         <span className="text-xs font-mono font-semibold" style={{ color: isProfit ? '#10b981' : '#ef4444' }}>
           {isProfit ? '+' : ''}${pnl.toFixed(0)}
         </span>
+        <button onClick={() => onDelete(trade.id)} title="Delete">
+          <Trash2 className="w-3.5 h-3.5 text-red-400 opacity-50 hover:opacity-100" />
+        </button>
       </div>
     </div>
   )
@@ -166,8 +175,11 @@ function ClosedCard({ trade }: { trade: Trade }) {
 
 export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
   const [tab, setTab] = useState<'open' | 'history'>('open')
+  const [confirmClear, setConfirmClear] = useState(false)
   const { data: trades = [], isLoading } = useTrades(user?.id)
-  const closeTrade = useCloseTrade()
+  const closeTrade  = useCloseTrade()
+  const deleteTrade = useDeleteTrade()
+  const clearTrades = useClearTrades()
 
   const open   = trades.filter(t => t.status === 'OPEN')
   const closed = trades.filter(t => t.status === 'CLOSED')
@@ -178,6 +190,15 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
 
   function handleClose(id: string) {
     closeTrade.mutate({ id, exit_price: 0 })
+  }
+
+  function handleDelete(id: string) {
+    deleteTrade.mutate(id)
+  }
+
+  function handleClearAll() {
+    if (!user) return
+    clearTrades.mutate(user.id, { onSuccess: () => setConfirmClear(false) })
   }
 
   if (!user) {
@@ -216,7 +237,32 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
           <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Portfolio</h2>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{user.email}</p>
         </div>
-        {isLoading && <div className="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />}
+        <div className="flex items-center gap-2">
+          {isLoading && <div className="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />}
+          {trades.length > 0 && (
+            confirmClear ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Sure?</span>
+                <button onClick={handleClearAll}
+                  className="text-[10px] px-2 py-1 rounded-lg font-semibold text-white"
+                  style={{ background: '#ef4444' }}>
+                  {clearTrades.isPending ? '…' : 'Yes, clear'}
+                </button>
+                <button onClick={() => setConfirmClear(false)}
+                  className="text-[10px] px-2 py-1 rounded-lg"
+                  style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setConfirmClear(true)}
+                className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg"
+                style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                <Trash2 className="w-3 h-3" /> Clear all
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       {/* Summary */}
@@ -275,7 +321,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
         ) : (
           <div className="space-y-3">
             {open.map(t => (
-              <OpenCard key={t.id} trade={t} spot={spotPrices[t.ticker] ?? 0} onClose={handleClose} />
+              <OpenCard key={t.id} trade={t} spot={spotPrices[t.ticker] ?? 0} onClose={handleClose} onDelete={handleDelete} />
             ))}
           </div>
         )
@@ -287,7 +333,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
           </div>
         ) : (
           <div className="space-y-2">
-            {closed.map(t => <ClosedCard key={t.id} trade={t} />)}
+            {closed.map(t => <ClosedCard key={t.id} trade={t} onDelete={handleDelete} />)}
           </div>
         )
       )}
