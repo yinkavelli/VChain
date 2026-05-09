@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
@@ -41,10 +41,9 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function buildPayoffData(s: StrategyScreenResult, spot: number, zoom = 25, panPct = 0) {
-  const center = spot * (1 + panPct / 100)
-  const low  = center * (1 - zoom / 100)
-  const high = center * (1 + zoom / 100)
+function buildPayoffData(s: StrategyScreenResult, spot: number) {
+  const low  = spot * 0.70
+  const high = spot * 1.30
   const steps = 50
   return Array.from({ length: steps + 1 }, (_, i) => {
     const price = low + (i / steps) * (high - low)
@@ -69,52 +68,11 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  const [zoom, setZoom]         = useState(25)
-  const [panPct, setPanPct]     = useState(0)
-  const touchRef = useRef<{ lastDist?: number; lastX?: number }>({})
   const tc = thesisColor(s.thesis)
-  const payoff  = buildPayoffData(s, spot, zoom, panPct)
+  const payoff = buildPayoffData(s, spot)
   const pnlColor = s.maxProfit > 0 ? '#10b981' : '#f59e0b'
-  const ivLow  = +(spot - s.expectedMove).toFixed(2)
-  const ivHigh = +(spot + s.expectedMove).toFixed(2)
-
-  function handleWheel(e: React.WheelEvent) {
-    e.preventDefault()
-    setZoom(z => Math.min(40, Math.max(5, z + (e.deltaY > 0 ? 2 : -2))))
-  }
-
-  function handleTouchStart(e: React.TouchEvent) {
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX
-      const dy = e.touches[0].clientY - e.touches[1].clientY
-      touchRef.current.lastDist = Math.sqrt(dx * dx + dy * dy)
-    } else {
-      touchRef.current.lastX = e.touches[0].clientX
-    }
-  }
-
-  function handleTouchMove(e: React.TouchEvent) {
-    e.preventDefault()
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX
-      const dy = e.touches[0].clientY - e.touches[1].clientY
-      const dist = Math.sqrt(dx * dx + dy * dy)
-      const last = touchRef.current.lastDist ?? dist
-      // pinch apart = zoom out (wider range), pinch together = zoom in
-      setZoom(z => Math.min(40, Math.max(5, z + (last - dist) * 0.12)))
-      touchRef.current.lastDist = dist
-    } else if (e.touches.length === 1) {
-      const x = e.touches[0].clientX
-      const last = touchRef.current.lastX ?? x
-      // drag right → pan left (see lower prices); drag left → pan right
-      setPanPct(p => p - (x - last) * zoom / 400)
-      touchRef.current.lastX = x
-    }
-  }
-
-  function handleTouchEnd() {
-    touchRef.current = {}
-  }
+  const ivLow    = +(spot - s.expectedMove).toFixed(2)
+  const ivHigh   = +(spot + s.expectedMove).toFixed(2)
 
   return (
     <motion.div
@@ -219,29 +177,17 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
             style={{ borderColor: tc.border }}>
             <div className="p-4 space-y-3">
               {/* Breakeven row */}
-              <div className="flex items-center justify-between">
-                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+              <div className="flex items-center justify-between text-[10px]">
+                <span style={{ color: 'var(--text-muted)' }}>
                   BE: {s.breakevens.map(b => `$${b.toFixed(2)}`).join(' / ')}
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
-                    Scroll/pinch · ±{zoom.toFixed(0)}%
-                  </span>
-                  {(zoom !== 25 || panPct !== 0) && (
-                    <button onClick={() => { setZoom(25); setPanPct(0) }}
-                      className="text-[9px] px-1.5 py-0.5 rounded"
-                      style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
-                      Reset
-                    </button>
-                  )}
-                </div>
+                <span style={{ color: 'var(--text-muted)' }}>← scroll →</span>
               </div>
 
-              <div onWheel={handleWheel} onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
-                style={{ touchAction: 'none' }}>
-                <ResponsiveContainer width="100%" height={140}>
-                  <AreaChart data={payoff} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+              {/* Horizontally scrollable chart */}
+              <div className="overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ width: 800, height: 140 }}>
+                  <AreaChart width={800} height={140} data={payoff} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id={`grad-${s.id}`} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%"  stopColor={pnlColor} stopOpacity={0.3} />
@@ -249,14 +195,13 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="price" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
-                      tickFormatter={v => `$${v}`} interval="preserveStartEnd" />
+                      tickFormatter={v => `$${v}`} interval={4} />
                     <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
                       tickFormatter={v => v >= 0 ? `+$${v}` : `-$${Math.abs(v)}`} width={46} />
                     <Tooltip contentStyle={{ background: '#0d0d20', border: '1px solid #1e1e3f', borderRadius: 8, fontSize: 10 }}
                       formatter={(v) => { const n = Number(v); return [n >= 0 ? `+$${n}` : `-$${Math.abs(n)}`, 'P&L'] }}
                       labelFormatter={v => `Spot $${v}`} />
-                    {/* IV-implied 1SD price range — render before Area so it sits behind */}
-                    <ReferenceArea x1={ivLow} x2={ivHigh} fill="rgba(99,102,241,0.18)" stroke="rgba(99,102,241,0.45)" strokeDasharray="4 2" ifOverflow="visible" />
+                    <ReferenceArea x1={ivLow} x2={ivHigh} fill="rgba(99,102,241,0.18)" stroke="rgba(99,102,241,0.45)" strokeDasharray="4 2" />
                     <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
                     <ReferenceLine x={spot} stroke="#6366f1" strokeWidth={1.5}
                       label={{ value: `$${spot.toFixed(0)}`, position: 'top', fontSize: 8, fill: '#6366f1' }} />
@@ -267,7 +212,7 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
                     <Area type="monotone" dataKey="pnl" stroke={pnlColor} strokeWidth={2}
                       fill={`url(#grad-${s.id})`} dot={false} />
                   </AreaChart>
-                </ResponsiveContainer>
+                </div>
               </div>
 
               {/* IV band legend */}
