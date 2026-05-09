@@ -24,42 +24,42 @@ function thesisColor(thesis: string) {
   return { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.4)', text: '#a5b4fc' }
 }
 
+function getLeg(leg: any) {
+  return {
+    action: leg.action as 'BUY' | 'SELL',
+    strike: leg.strike ?? leg.contract?.details?.strike_price ?? 0,
+    type:   (leg.type ?? leg.contract?.details?.contract_type ?? 'call').toUpperCase(),
+    expiry: (leg.expiry ?? leg.contract?.details?.expiration_date ?? ''),
+    price:  leg.price,
+  }
+}
+
 export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
-  const [qty, setQty]       = useState('1')
+  const [qty, setQty]       = useState(1)
   const [status, setStatus] = useState<'idle' | 'confirm' | 'success' | 'error'>('idle')
   const [errMsg, setErrMsg] = useState('')
   const bookTrade = useBookTrade()
   const tc = thesisColor(s.thesis)
-  const contracts = Math.max(1, parseInt(qty) || 1)
 
-  const totalCredit  = s.maxProfit * contracts
-  const totalMaxLoss = s.maxLoss * contracts
-  const isCredit     = s.maxProfit > 0
-
-  async function handleBook() {
-    if (!user) { onSignIn(); return }
-    setStatus('confirm')
-  }
+  const netCredit  = s.maxProfit   // per share (positive = credit spread)
+  const maxLoss    = s.maxLoss     // per share (positive number)
+  const isCredit   = netCredit > 0
+  const totalProfit = netCredit * qty * 100
+  const totalLoss   = maxLoss  * qty * 100
 
   async function handleConfirm() {
     if (!user) return
     try {
-      // Book one trade row per leg
-      const leg = s.legs[0]
-      const strike = (leg as any).strike ?? leg.contract?.details?.strike_price ?? 0
-      const expiry = (leg as any).expiry ?? leg.contract?.details?.expiration_date ?? ''
-      const optSide = ((leg as any).type ?? leg.contract?.details?.contract_type ?? 'call').toLowerCase() as 'call' | 'put'
-
+      const legs = s.legs.map(getLeg)
       await bookTrade.mutateAsync({
-        user_id:      user.id,
-        ticker:       s.ticker,
-        symbol:       `O:${s.ticker}${expiry.replace(/-/g,'')}${optSide === 'call' ? 'C' : 'P'}${String(Math.round(strike * 1000)).padStart(8,'0')}`,
-        side:         leg.action === 'SELL' ? 'SELL' : 'BUY',
-        option_side:  optSide,
-        quantity:     contracts,
-        entry_price:  leg.price,
-        strike_price: strike,
-        expiry_date:  expiry,
+        user_id:       user.id,
+        ticker:        s.ticker,
+        strategy_type: s.type,
+        strategy_data: { legs, dte: s.dte, breakevens: s.breakevens },
+        quantity:      qty,
+        entry_price:   netCredit,
+        max_profit:    +(netCredit * 100).toFixed(2),
+        max_loss:      +(maxLoss   * 100).toFixed(2),
       })
       setStatus('success')
     } catch (e: any) {
@@ -70,24 +70,17 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
 
   return (
     <AnimatePresence>
-      {/* Backdrop */}
-      <motion.div
-        key="backdrop"
-        className="fixed inset-0 z-40"
+      <motion.div key="backdrop" className="fixed inset-0 z-40"
         style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-      />
+        onClick={onClose} />
 
-      {/* Sheet */}
-      <motion.div
-        key="sheet"
+      <motion.div key="sheet"
         className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto rounded-t-3xl overflow-hidden"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderBottom: 'none' }}
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}>
 
-        {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
         </div>
@@ -116,14 +109,12 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
               <CheckCircle className="w-12 h-12 mx-auto text-emerald-400" />
               <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>Trade booked!</p>
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {contracts} contract{contracts > 1 ? 's' : ''} of {s.type} on {s.ticker} added to your portfolio.
+                {qty} contract{qty > 1 ? 's' : ''} of {s.type} on {s.ticker} added to your portfolio.
               </p>
-              <button onClick={onClose}
-                className="w-full py-3 rounded-2xl text-sm font-semibold text-white mt-2"
-                style={{ background: 'var(--accent)' }}>
-                Done
-              </button>
+              <button onClick={onClose} className="w-full py-3 rounded-2xl text-sm font-semibold text-white"
+                style={{ background: 'var(--accent)' }}>Done</button>
             </div>
+
           ) : status === 'error' ? (
             <div className="py-6 text-center space-y-3">
               <AlertTriangle className="w-12 h-12 mx-auto text-red-400" />
@@ -135,28 +126,53 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
                 Try again
               </button>
             </div>
+
           ) : status === 'confirm' ? (
             <div className="space-y-4">
+              <div className="space-y-2">
+                {s.legs.map((leg, i) => {
+                  const l = getLeg(leg)
+                  return (
+                    <div key={i} className="flex items-center justify-between rounded-xl px-3 py-2"
+                      style={{ background: l.action === 'SELL' ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)' }}>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${l.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
+                          {l.action}
+                        </span>
+                        <span className="text-xs" style={{ color: 'var(--text-sub)' }}>
+                          ${l.strike} {l.type} · {l.expiry.slice(5)}
+                        </span>
+                      </div>
+                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>${l.price.toFixed(3)}</span>
+                    </div>
+                  )
+                })}
+              </div>
               <div className="rounded-2xl p-4 space-y-2" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>Confirm simulated trade</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {s.legs.length} leg{s.legs.length > 1 ? 's' : ''} · {contracts} contract{contracts > 1 ? 's' : ''} · {s.type}
-                </p>
-                <div className="flex justify-between text-xs mt-1">
-                  <span style={{ color: 'var(--text-muted)' }}>{isCredit ? 'Max credit' : 'Max debit'}</span>
+                <div className="flex justify-between text-xs">
+                  <span style={{ color: 'var(--text-muted)' }}>{isCredit ? 'Credit received' : 'Debit paid'}</span>
                   <span className="font-mono font-semibold" style={{ color: isCredit ? '#10b981' : '#f59e0b' }}>
-                    ${(Math.abs(isCredit ? totalCredit : totalMaxLoss) * 100).toFixed(0)}
+                    ${Math.abs(totalProfit).toFixed(0)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
+                  <span style={{ color: 'var(--text-muted)' }}>Max profit</span>
+                  <span className="font-mono font-semibold text-emerald-400">${totalProfit.toFixed(0)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
                   <span style={{ color: 'var(--text-muted)' }}>Max loss</span>
-                  <span className="font-mono text-red-400">-${(totalMaxLoss * 100).toFixed(0)}</span>
+                  <span className="font-mono font-semibold text-red-400">-${totalLoss.toFixed(0)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span style={{ color: 'var(--text-muted)' }}>Contracts</span>
+                  <span className="font-mono" style={{ color: 'var(--text)' }}>{qty}</span>
                 </div>
               </div>
-              <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <div className="rounded-xl p-3 flex items-start gap-2"
+                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                  This is a simulated paper trade. No real orders are placed. Prices use prev-day close.
+                  Simulated paper trade only. No real orders are placed. Prices use prev-day close.
                 </p>
               </div>
               <div className="flex gap-2">
@@ -172,28 +188,25 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
                 </button>
               </div>
             </div>
+
           ) : (
             <>
               {/* Legs */}
               <div className="space-y-2">
                 {s.legs.map((leg, i) => {
-                  const strike = (leg as any).strike ?? leg.contract?.details?.strike_price ?? 0
-                  const type   = ((leg as any).type ?? leg.contract?.details?.contract_type ?? '').toUpperCase()
-                  const expiry = ((leg as any).expiry ?? leg.contract?.details?.expiration_date ?? '').slice(5)
+                  const l = getLeg(leg)
                   return (
                     <div key={i} className="flex items-center justify-between rounded-xl px-3 py-2.5"
-                      style={{ background: leg.action === 'SELL' ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)', border: `1px solid ${leg.action === 'SELL' ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}` }}>
+                      style={{ background: l.action === 'SELL' ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)', border: `1px solid ${l.action === 'SELL' ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}` }}>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${leg.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
-                          {leg.action}
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${l.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
+                          {l.action}
                         </span>
                         <span className="text-xs" style={{ color: 'var(--text-sub)' }}>
-                          ${strike} {type} · {expiry} · {s.dte}d
+                          ${l.strike} {l.type} · {l.expiry.slice(5)} · {s.dte}d
                         </span>
                       </div>
-                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                        ${leg.price.toFixed(3)}
-                      </span>
+                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>${l.price.toFixed(3)}</span>
                     </div>
                   )
                 })}
@@ -202,23 +215,24 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
               {/* Quantity */}
               <div className="flex items-center gap-3">
                 <label className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Contracts</label>
-                <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}>
-                  <button onClick={() => setQty(q => String(Math.max(1, (parseInt(q)||1) - 1)))}
-                    className="w-5 h-5 rounded-lg flex items-center justify-center text-sm font-bold"
+                <div className="flex items-center gap-3 rounded-xl px-3 py-2"
+                  style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}>
+                  <button onClick={() => setQty(q => Math.max(1, q - 1))}
+                    className="w-5 h-5 flex items-center justify-center text-lg font-bold"
                     style={{ color: 'var(--accent)' }}>−</button>
-                  <span className="w-6 text-center text-sm font-mono font-semibold" style={{ color: 'var(--text)' }}>{contracts}</span>
-                  <button onClick={() => setQty(q => String((parseInt(q)||1) + 1))}
-                    className="w-5 h-5 rounded-lg flex items-center justify-center text-sm font-bold"
+                  <span className="w-6 text-center text-sm font-mono font-semibold" style={{ color: 'var(--text)' }}>{qty}</span>
+                  <button onClick={() => setQty(q => q + 1)}
+                    className="w-5 h-5 flex items-center justify-center text-lg font-bold"
                     style={{ color: 'var(--accent)' }}>+</button>
                 </div>
               </div>
 
-              {/* Cost summary */}
+              {/* Summary */}
               <div className="rounded-2xl p-4 space-y-2" style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}>
                 {[
-                  { label: isCredit ? 'Est. credit' : 'Est. debit', value: `$${(Math.abs(isCredit ? totalCredit : -totalMaxLoss) * 100).toFixed(0)}`, color: isCredit ? '#10b981' : '#f59e0b' },
-                  { label: 'Max profit', value: `$${(totalCredit * 100).toFixed(0)}`, color: '#10b981' },
-                  { label: 'Max loss',   value: `-$${(totalMaxLoss * 100).toFixed(0)}`, color: '#ef4444' },
+                  { label: isCredit ? 'Est. credit' : 'Est. debit', value: `$${Math.abs(totalProfit).toFixed(0)}`, color: isCredit ? '#10b981' : '#f59e0b' },
+                  { label: 'Max profit', value: `$${totalProfit.toFixed(0)}`,  color: '#10b981' },
+                  { label: 'Max loss',   value: `-$${totalLoss.toFixed(0)}`,   color: '#ef4444' },
                 ].map(r => (
                   <div key={r.label} className="flex justify-between text-xs">
                     <span style={{ color: 'var(--text-muted)' }}>{r.label}</span>
@@ -227,9 +241,8 @@ export function TradeModal({ strategy: s, user, onClose, onSignIn }: Props) {
                 ))}
               </div>
 
-              {/* CTA */}
               {user ? (
-                <button onClick={handleBook}
+                <button onClick={() => setStatus('confirm')}
                   className="w-full py-3.5 rounded-2xl text-sm font-semibold text-white"
                   style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)' }}>
                   Review trade →

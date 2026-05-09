@@ -5,17 +5,24 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+export type TradeLeg = {
+  action: 'BUY' | 'SELL'
+  strike: number
+  type: string
+  expiry: string
+  price: number
+}
+
 export type Trade = {
   id: string
   user_id: string
   ticker: string
-  symbol: string            // OCC symbol e.g. O:AAPL250620C00150000
-  side: 'BUY' | 'SELL'
-  option_side: 'call' | 'put'
+  strategy_type: string
+  strategy_data: { legs: TradeLeg[]; dte: number; breakevens: number[] }
   quantity: number
-  entry_price: number
-  strike_price: number
-  expiry_date: string       // YYYY-MM-DD
+  entry_price: number   // net credit (positive) or debit (negative) per share
+  max_profit: number    // per contract in dollars
+  max_loss: number      // per contract in dollars (positive number)
   status: 'OPEN' | 'CLOSED'
   exit_price?: number
   exit_time?: string
