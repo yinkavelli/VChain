@@ -8,6 +8,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 interface Props {
   spotPrices: Record<string, number>
   onSelectTicker: (ticker: string) => void
+  onTrade: (s: StrategyScreenResult) => void
 }
 
 const THESIS_TABS: (Thesis | 'All')[] = ['All', 'Sell Premium', 'Bullish', 'Bearish', 'Buy Vol', 'Neutral']
@@ -60,10 +61,11 @@ function buildPayoffData(s: StrategyScreenResult, spot: number) {
   })
 }
 
-function StrategyCard({ s, spot, onSelectTicker }: {
+function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   s: StrategyScreenResult
   spot: number
   onSelectTicker: (t: string) => void
+  onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const tc = thesisColor(s.thesis)
@@ -140,12 +142,19 @@ function StrategyCard({ s, spot, onSelectTicker }: {
               Max loss: {s.maxLoss === Infinity ? '∞' : `-$${(s.maxLoss * 100).toFixed(0)}`}
             </span>
           </div>
-          <button onClick={() => setExpanded(e => !e)}
-            className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors"
-            style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.1)' }}>
-            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            Payoff
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => onTrade(s)}
+              className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+              Trade
+            </button>
+            <button onClick={() => setExpanded(e => !e)}
+              className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors"
+              style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.1)' }}>
+              {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              Payoff
+            </button>
+          </div>
         </div>
       </div>
 
@@ -226,7 +235,7 @@ const SCORING_NOTES = [
   { label: 'Score', desc: 'Composite 0–100. Weights: IV Rank 25%, IV/HV ratio 25%, annualised yield 25%, PoP 15%, DTE sweet spot 10%.' },
 ]
 
-export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
+export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props) {
   const [thesis, setThesis]       = useState<Thesis | 'All'>('All')
   const [minScore, setMinScore]   = useState(50)
   const [showScoring, setScoring] = useState(false)
@@ -361,6 +370,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker }: Props) {
               s={s}
               spot={spotPrices[s.ticker] ?? 0}
               onSelectTicker={onSelectTicker}
+              onTrade={onTrade}
             />
           ))}
         </div>

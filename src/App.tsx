@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RefreshCw, Link2 } from 'lucide-react'
+import { RefreshCw, Link2, LogIn, LogOut } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { BottomNav } from './components/BottomNav'
 import { Ticker } from './components/Ticker'
@@ -8,13 +8,19 @@ import { DashboardView } from './components/DashboardView'
 import { ScreenerView } from './components/ScreenerView'
 import { OptionChainView } from './components/OptionChainView'
 import { StrategyScreener } from './components/StrategyScreener'
+import { PortfolioView } from './components/PortfolioView'
+import { TradeModal } from './components/TradeModal'
 import { useScreener } from './hooks/useScreener'
+import { useAuth } from './hooks/useAuth'
+import type { StrategyScreenResult } from './hooks/useStrategyScreener'
 
 export default function App() {
   const [activeTab, setActiveTab]   = useState('dashboard')
   const [selectedTicker, setTicker] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [tradeStrategy, setTradeStrategy] = useState<StrategyScreenResult | null>(null)
   const qc = useQueryClient()
+  const { user, signInWithGoogle, signOut } = useAuth()
 
   const { data: stocks = [], isLoading } = useScreener()
   const spotPrice  = stocks.find(r => r.ticker === selectedTicker)?.price ?? 0
@@ -56,6 +62,21 @@ export default function App() {
               </div>
               <div style={{ color: 'var(--text-muted)' }}>{stocks.length} stocks</div>
             </div>
+            {user ? (
+              <button onClick={() => signOut()}
+                className="w-8 h-8 rounded-xl flex items-center justify-center"
+                style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}
+                title={`Signed in as ${user.email}`}>
+                <LogOut className="w-3.5 h-3.5" style={{ color: 'var(--text-sub)' }} />
+              </button>
+            ) : (
+              <button onClick={() => signInWithGoogle()}
+                className="w-8 h-8 rounded-xl flex items-center justify-center"
+                style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}
+                title="Sign in with Google">
+                <LogIn className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
+              </button>
+            )}
 <button onClick={handleRefresh}
               className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
               style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
@@ -84,7 +105,7 @@ export default function App() {
           {activeTab === 'strategies' && (
             <motion.div key="strategies"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <StrategyScreener spotPrices={spotPrices} onSelectTicker={handleSelectTicker} />
+              <StrategyScreener spotPrices={spotPrices} onSelectTicker={handleSelectTicker} onTrade={setTradeStrategy} />
             </motion.div>
           )}
           {activeTab === 'chains' && (
@@ -105,11 +126,7 @@ export default function App() {
           {activeTab === 'portfolio' && (
             <motion.div key="portfolio"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <Link2 className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--accent)' }} />
-                <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>Portfolio coming soon</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Simulated trade booking and P&L tracking</p>
-              </div>
+              <PortfolioView user={user} spotPrices={spotPrices} onSignIn={signInWithGoogle} />
             </motion.div>
           )}
           {activeTab === 'settings' && (
@@ -154,6 +171,16 @@ export default function App() {
       </main>
 
       <BottomNav active={activeTab} onChange={setActiveTab} />
+
+      {tradeStrategy && (
+        <TradeModal
+          strategy={tradeStrategy}
+          spot={spotPrices[tradeStrategy.ticker] ?? 0}
+          user={user}
+          onClose={() => setTradeStrategy(null)}
+          onSignIn={() => { setTradeStrategy(null); signInWithGoogle() }}
+        />
+      )}
     </div>
   )
 }
