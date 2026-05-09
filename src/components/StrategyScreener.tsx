@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
 import type { Thesis } from '../lib/strategyScorer'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts'
 
 interface Props {
   spotPrices: Record<string, number>
@@ -41,9 +41,9 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function buildPayoffData(s: StrategyScreenResult, spot: number) {
-  const low  = spot * 0.75
-  const high = spot * 1.25
+function buildPayoffData(s: StrategyScreenResult, spot: number, zoom = 25) {
+  const low  = spot * (1 - zoom / 100)
+  const high = spot * (1 + zoom / 100)
   const steps = 50
   return Array.from({ length: steps + 1 }, (_, i) => {
     const price = low + (i / steps) * (high - low)
@@ -68,9 +68,12 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [zoom, setZoom] = useState<10 | 15 | 25>(25)
   const tc = thesisColor(s.thesis)
-  const payoff = buildPayoffData(s, spot)
+  const payoff = buildPayoffData(s, spot, zoom)
   const pnlColor = s.maxProfit > 0 ? '#10b981' : '#f59e0b'
+  const ivLow  = +(spot - s.expectedMove).toFixed(2)
+  const ivHigh = +(spot + s.expectedMove).toFixed(2)
 
   return (
     <motion.div
@@ -95,6 +98,12 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
               <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ color: tc.text, background: tc.bg }}>
                 {s.thesis}
               </span>
+              {spot > 0 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
+                  ${spot.toFixed(2)}
+                </span>
+              )}
             </div>
             <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{s.edge}</p>
           </div>
@@ -168,15 +177,26 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
             className="overflow-hidden border-t"
             style={{ borderColor: tc.border }}>
             <div className="p-4 space-y-3">
-              <div className="flex items-center justify-between text-[10px]">
-                <span style={{ color: 'var(--text-muted)' }}>
-                  Breakeven{s.breakevens.length > 1 ? 's' : ''}: {s.breakevens.map(b => `$${b.toFixed(2)}`).join(' / ')}
+              {/* Breakeven + zoom controls */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                  BE: {s.breakevens.map(b => `$${b.toFixed(2)}`).join(' / ')}
                 </span>
-                <span style={{ color: 'var(--text-muted)' }}>
-                  Expected ±{s.expectedMovePct.toFixed(1)}% ({s.dte}d)
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] mr-1" style={{ color: 'var(--text-muted)' }}>Zoom</span>
+                  {([10, 15, 25] as const).map(z => (
+                    <button key={z} onClick={() => setZoom(z)}
+                      className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                      style={zoom === z
+                        ? { background: 'var(--accent)', color: '#fff' }
+                        : { background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}>
+                      ±{z}%
+                    </button>
+                  ))}
+                </div>
               </div>
-              <ResponsiveContainer width="100%" height={130}>
+
+              <ResponsiveContainer width="100%" height={140}>
                 <AreaChart data={payoff} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id={`grad-${s.id}`} x1="0" y1="0" x2="0" y2="1">
@@ -191,9 +211,11 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
                   <Tooltip contentStyle={{ background: '#0d0d20', border: '1px solid #1e1e3f', borderRadius: 8, fontSize: 10 }}
                     formatter={(v) => { const n = Number(v); return [n >= 0 ? `+$${n}` : `-$${Math.abs(n)}`, 'P&L'] }}
                     labelFormatter={v => `Spot $${v}`} />
+                  {/* IV-implied 1SD price range band */}
+                  <ReferenceArea x1={ivLow} x2={ivHigh} fill="rgba(99,102,241,0.08)" stroke="rgba(99,102,241,0.25)" strokeDasharray="3 2" />
                   <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
                   <ReferenceLine x={spot} stroke="#6366f1" strokeWidth={1.5}
-                    label={{ value: 'Now', position: 'top', fontSize: 8, fill: '#6366f1' }} />
+                    label={{ value: `$${spot.toFixed(0)}`, position: 'top', fontSize: 8, fill: '#6366f1' }} />
                   {s.breakevens.map((b, i) => (
                     <ReferenceLine key={i} x={+b.toFixed(2)} stroke="#f59e0b" strokeDasharray="3 2"
                       label={{ value: 'BE', position: 'insideTopRight', fontSize: 7, fill: '#f59e0b' }} />
@@ -203,15 +225,15 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
                 </AreaChart>
               </ResponsiveContainer>
 
-              {/* Expected move visual */}
-              <div className="flex items-center gap-2 text-[10px]">
-                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                  <div className="h-full rounded-full" style={{
-                    width: `${Math.min(100, s.expectedMovePct * 4)}%`,
-                    background: 'linear-gradient(90deg,#6366f1,#7c3aed)'
-                  }} />
+              {/* IV band legend */}
+              <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ background: 'rgba(99,102,241,0.25)', border: '1px dashed rgba(99,102,241,0.5)' }} />
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    IV range: ${ivLow} – ${ivHigh} <span className="opacity-60">(±{s.expectedMovePct.toFixed(1)}% 1SD)</span>
+                  </span>
                 </div>
-                <span style={{ color: 'var(--text-muted)' }}>1-SD: ±${s.expectedMove.toFixed(2)} ({s.expectedMovePct.toFixed(1)}%)</span>
+                <span style={{ color: 'var(--text-muted)' }}>{s.dte}d to expiry</span>
               </div>
 
               {/* Warning for EOD data */}

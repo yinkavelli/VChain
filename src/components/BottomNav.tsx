@@ -3,7 +3,7 @@ import { LayoutDashboard, Search, Link2, Briefcase, Settings, Zap } from 'lucide
 const TABS = [
   { id: 'dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
   { id: 'screener',   label: 'Stocks',     icon: Search          },
-  { id: 'strategies', label: 'Strategies', icon: Zap             },
+  { id: 'strategies', label: 'Screener',   icon: Zap             },
   { id: 'chains',     label: 'Chains',     icon: Link2           },
   { id: 'portfolio',  label: 'Portfolio',  icon: Briefcase       },
   { id: 'settings',   label: 'Settings',   icon: Settings        },
