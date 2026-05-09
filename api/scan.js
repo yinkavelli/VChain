@@ -335,13 +335,19 @@ export default async function handler(req, res) {
     return res.status(200).json({ saved: 0, message: 'No strategies found' })
   }
 
-  // Delete scans older than 2 hours, then insert fresh
-  await supabase.from('strategy_scans')
-    .delete()
-    .lt('scanned_at', new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
+  // Deduplicate: keep best-scored strategy per ticker+type
+  const seen = new Map()
+  for (const s of allStrategies.sort((a, b) => b.score - a.score)) {
+    const key = `${s.ticker}-${s.type}`
+    if (!seen.has(key)) seen.set(key, s)
+  }
+  const deduped = Array.from(seen.values())
+
+  // Delete all existing scans, insert fresh deduplicated set
+  await supabase.from('strategy_scans').delete().neq('id', 0)
 
   const { error } = await supabase.from('strategy_scans')
-    .insert(allStrategies.map(s => ({ data: s })))
+    .insert(deduped.map(s => ({ data: s })))
 
   if (error) return res.status(500).json({ error: error.message })
 

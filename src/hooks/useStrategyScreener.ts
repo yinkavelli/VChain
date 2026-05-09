@@ -38,9 +38,14 @@ async function fetchFromDB(): Promise<{ results: StrategyScreenResult[]; scanned
 
   if (ageMins > STALE_MINS) return { results: [], scannedAt: latestScan }
 
-  const results = data
-    .map(row => withMeta(row.data as ScoredStrategy, row.scanned_at))
-    .sort((a, b) => b.score - a.score)
+  // Deduplicate by ticker+type, keeping highest score
+  const seen = new Map<string, StrategyScreenResult>()
+  for (const row of data) {
+    const s = withMeta(row.data as ScoredStrategy, row.scanned_at)
+    const key = `${s.ticker}-${s.type}`
+    if (!seen.has(key) || s.score > seen.get(key)!.score) seen.set(key, s)
+  }
+  const results = Array.from(seen.values()).sort((a, b) => b.score - a.score)
   return { results, scannedAt: latestScan }
 }
 
