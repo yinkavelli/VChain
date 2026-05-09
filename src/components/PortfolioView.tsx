@@ -66,6 +66,9 @@ function OpenCard({ trade, spot, pnl, onClose, onDelete }: { trade: Trade; spot:
                 <span className="text-xs font-mono font-bold" style={{ color: pnl.totalPnL >= 0 ? '#10b981' : '#ef4444' }}>
                   {pnl.totalPnL >= 0 ? '+' : ''}${pnl.totalPnL.toFixed(0)}
                 </span>
+                {pnl.isStale && (
+                  <span className="text-[8px] ml-0.5" style={{ color: 'var(--text-muted)' }}>close</span>
+                )}
               </div>
             ) : (
               <div className="flex items-center justify-end gap-1 rounded-lg px-2 py-1"

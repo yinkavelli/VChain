@@ -11,6 +11,7 @@ export interface LegPnL {
 export interface TradePnL {
   tradeId: string
   totalPnL: number | null   // null = no live prices available
+  isStale: boolean          // true = fell back to prev-day close, not live quote
   legs: LegPnL[]
   isLoading: boolean
 }
@@ -21,7 +22,7 @@ async function fetchLivePrices(trades: Trade[]): Promise<Record<string, TradePnL
 
   // Init all trades
   for (const t of trades) {
-    result[t.id] = { tradeId: t.id, totalPnL: null, legs: [], isLoading: false }
+    result[t.id] = { tradeId: t.id, totalPnL: null, isStale: false, legs: [], isLoading: false }
   }
 
   await Promise.allSettled(tickers.map(async ticker => {
@@ -47,6 +48,7 @@ async function fetchLivePrices(trades: Trade[]): Promise<Record<string, TradePnL
       const legResults: LegPnL[] = []
       let totalPnL = 0
       let anyMissing = false
+      let anyStale = false
 
       for (const leg of legs) {
         const match = contracts.find(c =>
@@ -55,10 +57,10 @@ async function fetchLivePrices(trades: Trade[]): Promise<Record<string, TradePnL
           c.details.contract_type === leg.type.toLowerCase()
         )
 
-        const currentPrice = match?.last_quote?.midpoint
-          ?? match?.last_trade?.price
-          ?? match?.day?.c
-          ?? null
+        const livePrice  = match?.last_quote?.midpoint ?? match?.last_trade?.price ?? null
+        const stalePrice = match?.day?.c ?? null
+        const currentPrice = livePrice ?? stalePrice
+        if (livePrice == null && stalePrice != null) anyStale = true
 
         const entryPrice = leg.price
 
@@ -68,8 +70,6 @@ async function fetchLivePrices(trades: Trade[]): Promise<Record<string, TradePnL
           continue
         }
 
-        // For SELL legs: profit when price falls (we keep premium)
-        // For BUY legs: profit when price rises
         const direction = leg.action === 'SELL' ? -1 : 1
         const legPnL = direction * (currentPrice - entryPrice) * trade.quantity * 100
         totalPnL += legPnL
@@ -79,6 +79,7 @@ async function fetchLivePrices(trades: Trade[]): Promise<Record<string, TradePnL
       result[trade.id] = {
         tradeId: trade.id,
         totalPnL: anyMissing ? null : totalPnL,
+        isStale: anyStale,
         legs: legResults,
         isLoading: false,
       }

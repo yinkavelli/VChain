@@ -92,7 +92,10 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
     try {
       const res = await fetch('/api/rationale', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Rationale-Key': import.meta.env.VITE_CRON_SECRET ?? '',
+        },
         body: JSON.stringify({
           ticker:      s.ticker,
           strategy:    s.type,
