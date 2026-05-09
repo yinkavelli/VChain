@@ -71,7 +71,7 @@ function computeIV30(contracts, spot) {
 
 // ── Strategy builder ──────────────────────────────────────────────────
 function contractPrice(c) {
-  return c.day?.close || c.day?.vwap || 0
+  return c.day?.close || c.day?.vwap || c.prevDay?.close || c.prevDay?.vwap || c.last_quote?.ask || 0
 }
 
 function daysToExpiry(expiry) {
