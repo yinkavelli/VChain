@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
@@ -41,9 +41,10 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function buildPayoffData(s: StrategyScreenResult, spot: number, zoom = 25) {
-  const low  = spot * (1 - zoom / 100)
-  const high = spot * (1 + zoom / 100)
+function buildPayoffData(s: StrategyScreenResult, spot: number, zoom = 25, panPct = 0) {
+  const center = spot * (1 + panPct / 100)
+  const low  = center * (1 - zoom / 100)
+  const high = center * (1 + zoom / 100)
   const steps = 50
   return Array.from({ length: steps + 1 }, (_, i) => {
     const price = low + (i / steps) * (high - low)
@@ -68,9 +69,11 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  const [zoom, setZoom] = useState(25)
+  const [zoom, setZoom]         = useState(25)
+  const [panPct, setPanPct]     = useState(0)
+  const touchRef = useRef<{ lastDist?: number; lastX?: number }>({})
   const tc = thesisColor(s.thesis)
-  const payoff = buildPayoffData(s, spot, zoom)
+  const payoff  = buildPayoffData(s, spot, zoom, panPct)
   const pnlColor = s.maxProfit > 0 ? '#10b981' : '#f59e0b'
   const ivLow  = +(spot - s.expectedMove).toFixed(2)
   const ivHigh = +(spot + s.expectedMove).toFixed(2)
@@ -78,6 +81,39 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   function handleWheel(e: React.WheelEvent) {
     e.preventDefault()
     setZoom(z => Math.min(40, Math.max(5, z + (e.deltaY > 0 ? 2 : -2))))
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      touchRef.current.lastDist = Math.sqrt(dx * dx + dy * dy)
+    } else {
+      touchRef.current.lastX = e.touches[0].clientX
+    }
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    e.preventDefault()
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      const last = touchRef.current.lastDist ?? dist
+      // pinch apart = zoom out (wider range), pinch together = zoom in
+      setZoom(z => Math.min(40, Math.max(5, z + (last - dist) * 0.12)))
+      touchRef.current.lastDist = dist
+    } else if (e.touches.length === 1) {
+      const x = e.touches[0].clientX
+      const last = touchRef.current.lastX ?? x
+      // drag right → pan left (see lower prices); drag left → pan right
+      setPanPct(p => p - (x - last) * zoom / 400)
+      touchRef.current.lastX = x
+    }
+  }
+
+  function handleTouchEnd() {
+    touchRef.current = {}
   }
 
   return (
@@ -187,12 +223,23 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
                 <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                   BE: {s.breakevens.map(b => `$${b.toFixed(2)}`).join(' / ')}
                 </span>
-                <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
-                  Scroll to zoom · ±{zoom}%
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                    Scroll/pinch · ±{zoom.toFixed(0)}%
+                  </span>
+                  {(zoom !== 25 || panPct !== 0) && (
+                    <button onClick={() => { setZoom(25); setPanPct(0) }}
+                      className="text-[9px] px-1.5 py-0.5 rounded"
+                      style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div onWheel={handleWheel} style={{ touchAction: 'none' }}>
+              <div onWheel={handleWheel} onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
+                style={{ touchAction: 'none' }}>
                 <ResponsiveContainer width="100%" height={140}>
                   <AreaChart data={payoff} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                     <defs>
