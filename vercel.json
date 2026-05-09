@@ -1,6 +1,7 @@
 {
   "functions": {
-    "api/proxy.js": { "regions": ["iad1"] }
+    "api/proxy.js":     { "regions": ["iad1"] },
+    "api/rationale.ts": { "regions": ["iad1"] }
   },
   "crons": [
     {

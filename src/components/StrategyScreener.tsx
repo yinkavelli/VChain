@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle } from 'lucide-react'
+import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
 import type { Thesis } from '../lib/strategyScorer'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea } from 'recharts'
@@ -68,7 +68,52 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
   onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [rationaleOpen, setRationaleOpen] = useState(false)
+  const rationaleCache = useRef<string | null>(null)
+  const [rationaleText, setRationaleText] = useState<string | null>(null)
+  const [rationaleLoading, setRationaleLoading] = useState(false)
+  const [rationaleError, setRationaleError] = useState<string | null>(null)
   const tc = thesisColor(s.thesis)
+
+  async function handleRationaleToggle() {
+    if (rationaleOpen) {
+      setRationaleOpen(false)
+      return
+    }
+    setRationaleOpen(true)
+    // Already cached — skip fetch
+    if (rationaleCache.current !== null) {
+      setRationaleText(rationaleCache.current)
+      return
+    }
+    setRationaleLoading(true)
+    setRationaleError(null)
+    setRationaleText(null)
+    try {
+      const res = await fetch('/api/rationale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticker:      s.ticker,
+          strategy:    s.type,
+          iv_rank:     s.ivRank,
+          iv_hv_ratio: s.ivHvRatio,
+          price_trend: s.thesis,
+          dte:         s.dte,
+        }),
+      })
+      const json = await res.json() as { rationale?: string; error?: string }
+      if (!res.ok || json.error) throw new Error(json.error ?? 'Failed to fetch rationale')
+      const text = json.rationale ?? ''
+      rationaleCache.current = text
+      setRationaleText(text)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setRationaleError(msg)
+    } finally {
+      setRationaleLoading(false)
+    }
+  }
   const payoff = buildPayoffData(s, spot)
   const pnlColor = s.maxProfit > 0 ? '#10b981' : '#f59e0b'
   const ivLow    = +(spot - s.expectedMove).toFixed(2)
@@ -156,6 +201,15 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
               style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
               Trade
             </button>
+            <button onClick={handleRationaleToggle}
+              className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors"
+              style={rationaleOpen
+                ? { color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }
+                : { color: '#a78bfa', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }
+              }>
+              <Sparkles className="w-3 h-3" />
+              AI
+            </button>
             <button onClick={() => setExpanded(e => !e)}
               className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors"
               style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.1)' }}>
@@ -165,6 +219,52 @@ function StrategyCard({ s, spot, onSelectTicker, onTrade }: {
           </div>
         </div>
       </div>
+
+      {/* AI Rationale panel */}
+      <AnimatePresence>
+        {rationaleOpen && (
+          <motion.div
+            key="rationale"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden border-t"
+            style={{ borderColor: 'rgba(139,92,246,0.25)' }}>
+            <div className="px-4 py-3" style={{ background: 'rgba(139,92,246,0.05)' }}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <Sparkles className="w-3 h-3" style={{ color: '#a78bfa' }} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#a78bfa' }}>
+                  AI Rationale
+                </span>
+              </div>
+              {rationaleLoading && (
+                <div className="flex items-center gap-2 py-1">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: '#a78bfa' }} />
+                  <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Analysing signals…</span>
+                </div>
+              )}
+              {rationaleError && !rationaleLoading && (
+                <div className="flex items-center gap-1.5 text-[11px]" style={{ color: '#f87171' }}>
+                  <AlertTriangle className="w-3 h-3" />
+                  {rationaleError}
+                </div>
+              )}
+              {rationaleText && !rationaleLoading && (
+                <motion.p
+                  key={rationaleText}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="text-[12px] leading-relaxed"
+                  style={{ color: 'var(--text-sub)' }}>
+                  {rationaleText}
+                </motion.p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Expandable payoff diagram */}
       <AnimatePresence>
