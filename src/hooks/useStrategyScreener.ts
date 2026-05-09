@@ -108,14 +108,20 @@ export function useStrategyScreener(
       // 2. Fall back to live scan — and persist results to DB
       console.log('[Strategies] DB empty/stale — running live scan')
       const liveResults = await liveScan(spotPrices)
+      console.log(`[Strategies] Live scan found ${liveResults.length} strategies`)
       if (liveResults.length > 0) {
-        await supabase.from('strategy_scans')
+        const delResult = await supabase.from('strategy_scans')
           .delete()
           .lt('scanned_at', new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
+        if (delResult.error) console.error('[Strategies] Delete error:', delResult.error.message)
+
         const { error } = await supabase.from('strategy_scans')
           .insert(liveResults.map(s => ({ data: s })))
-        if (error) console.error('[Strategies] DB write failed:', error.message)
+        if (error) console.error('[Strategies] DB write failed:', error.code, error.message, error.details)
         else console.log(`[Strategies] Saved ${liveResults.length} strategies to DB`)
+      } else {
+        console.warn('[Strategies] No strategies found — check spotPrices and option chains')
+        console.log('[Strategies] spotPrices sample:', Object.entries(spotPrices).slice(0,3))
       }
       return liveResults
     },

@@ -251,9 +251,11 @@ function buildBearCallSpread(ticker, calls, spot, iv30, ivRank, ivHvRatio) {
 
 // ── Main scan handler ─────────────────────────────────────────────────
 export default async function handler(req, res) {
-  // Auth check
-  const auth = req.headers.authorization
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Auth check — accept CRON_SECRET or VITE_CRON_SECRET
+  const auth     = req.headers.authorization
+  const secret   = process.env.CRON_SECRET || process.env.VITE_CRON_SECRET
+  if (!secret || auth !== `Bearer ${secret}`) {
+    console.error('[scan] Auth failed. Header:', auth, 'Secret set:', !!secret)
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
