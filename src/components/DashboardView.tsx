@@ -84,8 +84,9 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
     }
     return [...map.entries()]
       .map(([sector, { total, count }]) => ({
-        sector: abbrev[sector] ?? sector.split(' ')[0],
-        avg: +(total / count).toFixed(2),
+        sector:   abbrev[sector] ?? sector.split(' ')[0],
+        fullName: sector,
+        avg:      +(total / count).toFixed(2),
       }))
       .sort((a, b) => b.avg - a.avg)
   }, [stocks])
@@ -178,16 +179,16 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
               <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
                 tickFormatter={v => `${v > 0 ? '+' : ''}${v}%`} width={36} />
               <Tooltip
-                content={({ active, payload, label }) => {
+                content={({ active, payload }) => {
                   if (!active || !payload?.length) return null
+                  const d = payload[0].payload as { sector: string; fullName: string; avg: number }
                   return (
                     <div style={{ background: '#0d0d20', border: '1px solid #6366f1', borderRadius: 8, padding: '8px 12px' }}>
-                      <p style={{ color: '#a5b4fc', fontWeight: 600, fontSize: 11, marginBottom: 2 }}>{label}</p>
-                      <p style={{ color: '#e2e8f0', fontSize: 11 }}>Avg change : {Number(payload[0].value) > 0 ? '+' : ''}{Number(payload[0].value).toFixed(2)}%</p>
+                      <p style={{ color: '#a5b4fc', fontWeight: 600, fontSize: 11, marginBottom: 2 }}>{d.fullName}</p>
+                      <p style={{ color: '#e2e8f0', fontSize: 11 }}>Avg change: {d.avg > 0 ? '+' : ''}{d.avg.toFixed(2)}%</p>
                     </div>
                   )
                 }}
-                formatter={(v) => [`${Number(v) > 0 ? '+' : ''}${Number(v)}%`, 'Avg change']}
               />
               <Bar dataKey="avg" radius={[4, 4, 0, 0]}>
                 {sectorData.map((s, i) => (
