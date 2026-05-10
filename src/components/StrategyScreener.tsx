@@ -69,10 +69,9 @@ function buildPayoffData(s: StrategyScreenResult, spot: number) {
   })
 }
 
-function StrategyCard({ s, spot, enrichment, onTrade }: {
+function StrategyCard({ s, spot, onTrade }: {
   s: StrategyScreenResult
   spot: number
-  enrichment?: TickerEnrichment
   onTrade: (s: StrategyScreenResult) => void
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -130,12 +129,6 @@ function StrategyCard({ s, spot, enrichment, onTrade }: {
   const ivLow    = +(spot - s.expectedMove).toFixed(2)
   const ivHigh   = +(spot + s.expectedMove).toFixed(2)
 
-  const earningsDays = enrichment?.earningsDate ? daysUntil(enrichment.earningsDate) : null
-  const earningsInWindow = earningsDays !== null && earningsDays >= 0 && earningsDays <= s.dte
-  const divDays = enrichment?.dividend?.exDate ? daysUntil(enrichment.dividend.exDate) : null
-  const divInWindow = divDays !== null && divDays >= 0 && divDays <= s.dte
-  const rsi = enrichment?.rsi ?? null
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -157,37 +150,17 @@ function StrategyCard({ s, spot, enrichment, onTrade }: {
               </span>
             </div>
             <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{s.edge}</p>
-            {/* Event badges */}
-            {(earningsInWindow || divInWindow) && (
-              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                {earningsInWindow && (
-                  <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                    style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
-                    <Calendar className="w-2.5 h-2.5" />
-                    Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
-                  </span>
-                )}
-                {divInWindow && (
-                  <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                    style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-                    <DollarSign className="w-2.5 h-2.5" />
-                    Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`} (${enrichment!.dividend!.amount.toFixed(2)})
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
 
         {/* Key metrics */}
-        <div className="grid grid-cols-5 gap-1.5 mb-3">
+        <div className="grid grid-cols-4 gap-1.5 mb-3">
           {[
-            { label: 'PoP',      value: `${s.pop}%`,                                            color: s.pop > 65 ? '#10b981' : '#f59e0b' },
+            { label: 'PoP',      value: `${s.pop}%`,                                                color: s.pop > 65 ? '#10b981' : '#f59e0b' },
             { label: 'Yield/yr', value: s.premiumYield > 0 ? `${s.premiumYield.toFixed(0)}%` : '—', color: '#6366f1' },
-            { label: 'IVR',      value: s.ivRank > 0 ? String(s.ivRank) : '~',                 color: s.ivRank > 50 ? '#10b981' : '#94a3b8' },
-            { label: 'IV/HV',    value: s.ivHvRatio > 0 ? `${s.ivHvRatio.toFixed(2)}×` : '—', color: s.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' },
-            { label: 'RSI',      value: rsi !== null ? rsi.toFixed(0) : '—',                   color: rsi === null ? '#94a3b8' : rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' },
+            { label: 'Max Profit', value: s.maxProfit === Infinity ? '∞' : `$${(s.maxProfit * 100).toFixed(0)}`, color: '#10b981' },
+            { label: 'Max Loss',   value: s.maxLoss   === Infinity ? '∞' : `-$${(s.maxLoss * 100).toFixed(0)}`,  color: '#ef4444' },
           ].map(m => (
             <div key={m.label} className="rounded-xl px-2 py-1.5 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
@@ -216,16 +189,8 @@ function StrategyCard({ s, spot, enrichment, onTrade }: {
           })}
         </div>
 
-        {/* P&L summary + expand */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[11px]">
-            <span className="text-emerald-400 font-mono">
-              Max profit: {s.maxProfit === Infinity ? '∞' : `$${(s.maxProfit * 100).toFixed(0)}`}
-            </span>
-            <span className="text-red-400 font-mono">
-              Max loss: {s.maxLoss === Infinity ? '∞' : `-$${(s.maxLoss * 100).toFixed(0)}`}
-            </span>
-          </div>
+        {/* Actions */}
+        <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
             <button onClick={() => onTrade(s)}
               className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
@@ -380,7 +345,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
   onTrade: (s: StrategyScreenResult) => void
   onToggleWatch: (ticker: string, watched: boolean) => void
 }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const best = strategies[0]
   const rsi = enrichment?.rsi ?? null
   const earningsDays = enrichment?.earningsDate ? daysUntil(enrichment.earningsDate) : null
@@ -388,64 +353,71 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
   const divDays = enrichment?.dividend?.exDate ? daysUntil(enrichment.dividend.exDate) : null
   const divInWindow = divDays !== null && divDays >= 0 && divDays <= (best?.dte ?? 45)
 
+  const ivMetrics = [
+    best && best.ivRank > 0    ? { label: 'IVR',   value: String(best.ivRank),                       color: best.ivRank > 50 ? '#10b981' : '#94a3b8' } : null,
+    best && best.ivHvRatio > 0 ? { label: 'IV/HV', value: `${best.ivHvRatio.toFixed(2)}×`,           color: best.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' } : null,
+    rsi !== null               ? { label: 'RSI',   value: rsi.toFixed(0),                            color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' } : null,
+  ].filter(Boolean) as { label: string; value: string; color: string }[]
+
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
       {/* Group header */}
       <button
-        className="w-full flex items-center justify-between px-4 py-3"
+        className="w-full text-left px-4 py-3"
         onClick={() => setOpen(o => !o)}
         style={{ background: 'rgba(99,102,241,0.04)' }}>
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Ticker + star */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold" style={{ color: 'var(--text)' }}
-              onClick={e => { e.stopPropagation(); onSelectTicker(ticker) }}>
-              {ticker}
-            </span>
-            <span onClick={e => { e.stopPropagation(); onToggleWatch(ticker, watched) }}>
-              <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
-                style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
-            </span>
-          </div>
-          {/* Spot price */}
-          {spot > 0 && (
-            <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
-              ${spot.toFixed(2)}
-            </span>
-          )}
-          {/* Key stats */}
-          <div className="flex items-center gap-2 text-[10px] font-mono">
-            {best && best.ivRank > 0 && (
-              <span style={{ color: best.ivRank > 50 ? '#10b981' : '#94a3b8' }}>IVR {best.ivRank}</span>
+        {/* Row 1: ticker, spot, metric cards, play count, chevron */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            {/* Ticker + star */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold" style={{ color: 'var(--text)' }}
+                onClick={e => { e.stopPropagation(); onSelectTicker(ticker) }}>
+                {ticker}
+              </span>
+              <span onClick={e => { e.stopPropagation(); onToggleWatch(ticker, watched) }}>
+                <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
+                  style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
+              </span>
+            </div>
+            {/* Spot price */}
+            {spot > 0 && (
+              <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
+                style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
+                ${spot.toFixed(2)}
+              </span>
             )}
-            {rsi !== null && (
-              <span style={{ color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' }}>RSI {rsi.toFixed(0)}</span>
+            {/* IVR / IV·HV / RSI as small metric cards */}
+            {ivMetrics.map(m => (
+              <div key={m.label} className="rounded-lg px-2 py-1 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-[8px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
+                <p className="text-[11px] font-bold font-mono leading-tight" style={{ color: m.color }}>{m.value}</p>
+              </div>
+            ))}
+            {/* Event badges */}
+            {earningsInWindow && (
+              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
+                <Calendar className="w-2.5 h-2.5" />
+                Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
+              </span>
+            )}
+            {divInWindow && (
+              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+                <DollarSign className="w-2.5 h-2.5" />
+                Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`}
+              </span>
             )}
           </div>
-          {/* Event badges */}
-          {earningsInWindow && (
-            <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
-              <Calendar className="w-2.5 h-2.5" />
-              Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
+              {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
             </span>
-          )}
-          {divInWindow && (
-            <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-              <DollarSign className="w-2.5 h-2.5" />
-              Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
-            {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
-          </span>
-          {open ? <ChevronUp className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-                : <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />}
+            {open ? <ChevronUp className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                  : <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />}
+          </div>
         </div>
       </button>
 
@@ -460,13 +432,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
             className="overflow-hidden">
             <div className="px-3 pb-3 pt-1 space-y-2">
               {strategies.map(s => (
-                <StrategyCard
-                  key={s.id}
-                  s={s}
-                  spot={spot}
-                  enrichment={enrichment}
-                  onTrade={onTrade}
-                />
+                <StrategyCard key={s.id} s={s} spot={spot} onTrade={onTrade} />
               ))}
             </div>
           </motion.div>
