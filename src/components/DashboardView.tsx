@@ -68,8 +68,25 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
       const cur = map.get(s.sector) ?? { total: 0, count: 0 }
       map.set(s.sector, { total: cur.total + s.changePct, count: cur.count + 1 })
     }
+    const abbrev: Record<string, string> = {
+      'Information Technology': 'Tech',
+      'Consumer Discretionary': 'Disc.',
+      'Consumer Staples':       'Staples',
+      'Communication Services': 'Comm.',
+      'Health Care':            'Health',
+      'Real Estate':            'RE',
+      'Financials':             'Finance',
+      'Industrials':            'Indust.',
+      'Materials':              'Materials',
+      'Energy':                 'Energy',
+      'Utilities':              'Utilities',
+      'ETF':                    'ETF',
+    }
     return [...map.entries()]
-      .map(([sector, { total, count }]) => ({ sector: sector.split(' ')[0], avg: +(total / count).toFixed(2) }))
+      .map(([sector, { total, count }]) => ({
+        sector: abbrev[sector] ?? sector.split(' ')[0],
+        avg: +(total / count).toFixed(2),
+      }))
       .sort((a, b) => b.avg - a.avg)
   }, [stocks])
 
@@ -154,9 +171,10 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
       {sectorData.length > 0 && (
         <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-sub)' }}>Sector Performance (today)</p>
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={sectorData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-              <XAxis dataKey="sector" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false} />
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={sectorData} margin={{ top: 4, right: 4, left: 0, bottom: 28 }}>
+              <XAxis dataKey="sector" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
+                angle={-35} textAnchor="end" interval={0} />
               <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
                 tickFormatter={v => `${v > 0 ? '+' : ''}${v}%`} width={36} />
               <Tooltip
