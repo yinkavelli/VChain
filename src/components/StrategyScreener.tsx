@@ -335,6 +335,32 @@ function StrategyCard({ s, spot, onTrade }: {
   )
 }
 
+function Sparkline({ closes, width = 80, height = 36 }: { closes: number[]; width?: number; height?: number }) {
+  if (closes.length < 2) return null
+  const min = Math.min(...closes)
+  const max = Math.max(...closes)
+  const range = max - min || 1
+  const pts = closes.map((c, i) => {
+    const x = (i / (closes.length - 1)) * width
+    const y = height - ((c - min) / range) * height
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+  const rising = closes[closes.length - 1] >= closes[0]
+  const color  = rising ? '#10b981' : '#ef4444'
+  return (
+    <svg width={width} height={height} style={{ display: 'block', flexShrink: 0 }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function timeAgo(utc: string): string {
+  const diff = (Date.now() - new Date(utc).getTime()) / 1000
+  if (diff < 3600)  return `${Math.round(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.round(diff / 3600)}h ago`
+  return `${Math.round(diff / 86400)}d ago`
+}
+
 function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTicker, onTrade, onToggleWatch }: {
   ticker: string
   strategies: StrategyScreenResult[]
@@ -352,25 +378,26 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
   const earningsInWindow = earningsDays !== null && earningsDays >= 0 && earningsDays <= (best?.dte ?? 45)
   const divDays = enrichment?.dividend?.exDate ? daysUntil(enrichment.dividend.exDate) : null
   const divInWindow = divDays !== null && divDays >= 0 && divDays <= (best?.dte ?? 45)
+  const sparkline = enrichment?.sparkline ?? []
+  const news = enrichment?.news ?? []
 
   const ivMetrics = [
-    best && best.ivRank > 0    ? { label: 'IVR',   value: String(best.ivRank),                       color: best.ivRank > 50 ? '#10b981' : '#94a3b8' } : null,
-    best && best.ivHvRatio > 0 ? { label: 'IV/HV', value: `${best.ivHvRatio.toFixed(2)}×`,           color: best.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' } : null,
-    rsi !== null               ? { label: 'RSI',   value: rsi.toFixed(0),                            color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' } : null,
+    best && best.ivRank > 0    ? { label: 'IVR',   value: String(best.ivRank),             color: best.ivRank > 50 ? '#10b981' : '#94a3b8' } : null,
+    best && best.ivHvRatio > 0 ? { label: 'IV/HV', value: `${best.ivHvRatio.toFixed(2)}×`, color: best.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' } : null,
+    rsi !== null               ? { label: 'RSI',   value: rsi.toFixed(0),                  color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' } : null,
   ].filter(Boolean) as { label: string; value: string; color: string }[]
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-      {/* Group header */}
-      <button
-        className="w-full text-left px-4 py-3"
-        onClick={() => setOpen(o => !o)}
+      {/* Group header — always visible */}
+      <button className="w-full text-left px-4 pt-3 pb-2" onClick={() => setOpen(o => !o)}
         style={{ background: 'rgba(99,102,241,0.04)' }}>
-        {/* Row 1: ticker, spot, metric cards, play count, chevron */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-wrap">
-            {/* Ticker + star */}
-            <div className="flex items-center gap-1.5">
+
+        {/* Row 1: ticker identity + metrics + sparkline + play count */}
+        <div className="flex items-start justify-between gap-2">
+          {/* Left: ticker name block */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
               <span className="text-sm font-bold" style={{ color: 'var(--text)' }}
                 onClick={e => { e.stopPropagation(); onSelectTicker(ticker) }}>
                 {ticker}
@@ -379,38 +406,34 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
                 <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
                   style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
               </span>
+              {spot > 0 && (
+                <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
+                  ${spot.toFixed(2)}
+                </span>
+              )}
             </div>
-            {/* Spot price */}
-            {spot > 0 && (
-              <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
-                style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
-                ${spot.toFixed(2)}
-              </span>
+            {enrichment?.companyName && (
+              <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
+                {enrichment.companyName}
+              </p>
             )}
-            {/* IVR / IV·HV / RSI as small metric cards */}
+          </div>
+
+          {/* Centre: metric cards + sparkline */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {ivMetrics.map(m => (
-              <div key={m.label} className="rounded-lg px-2 py-1 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div key={m.label} className="rounded-lg px-2 py-1 text-center"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="text-[8px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
                 <p className="text-[11px] font-bold font-mono leading-tight" style={{ color: m.color }}>{m.value}</p>
               </div>
             ))}
-            {/* Event badges */}
-            {earningsInWindow && (
-              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
-                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
-                <Calendar className="w-2.5 h-2.5" />
-                Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
-              </span>
-            )}
-            {divInWindow && (
-              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
-                style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-                <DollarSign className="w-2.5 h-2.5" />
-                Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`}
-              </span>
-            )}
+            {sparkline.length >= 2 && <Sparkline closes={sparkline} width={72} height={32} />}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+
+          {/* Right: play count + chevron */}
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-1">
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
               {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
@@ -419,9 +442,49 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
                   : <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />}
           </div>
         </div>
+
+        {/* Row 2: event badges */}
+        {(earningsInWindow || divInWindow) && (
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {earningsInWindow && (
+              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
+                <Calendar className="w-2.5 h-2.5" />
+                Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
+              </span>
+            )}
+            {divInWindow && (
+              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+                <DollarSign className="w-2.5 h-2.5" />
+                Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Row 3: top news headlines */}
+        {news.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {news.slice(0, 2).map(n => (
+              <a key={n.id} href={n.article_url} target="_blank" rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="flex items-start gap-1.5 group">
+                <span className="text-[9px] mt-0.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>▸</span>
+                <p className="text-[10px] leading-snug group-hover:underline truncate"
+                  style={{ color: 'var(--text-sub)' }}>
+                  {n.title}
+                </p>
+                <span className="text-[9px] flex-shrink-0 ml-auto pl-1" style={{ color: 'var(--text-muted)' }}>
+                  {timeAgo(n.published_utc)}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
       </button>
 
-      {/* Strategy cards */}
+      {/* Strategy cards — collapsible */}
       <AnimatePresence initial={false}>
         {open && (
           <motion.div

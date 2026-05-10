@@ -277,12 +277,26 @@ export interface NewsItem {
   description: string
 }
 
-export async function fetchNews(ticker: string): Promise<NewsItem[]> {
+export async function fetchNews(ticker: string, limit = 5): Promise<NewsItem[]> {
   try {
     const data = await get<{ results: NewsItem[] }>(
       '/v2/reference/news',
-      { ticker, limit: '5', sort: 'published_utc', order: 'desc' }
+      { ticker, limit: String(limit), sort: 'published_utc', order: 'desc' }
     )
     return data.results ?? []
+  } catch { return [] }
+}
+
+// ── Price sparkline (last N trading days closes) ───────────────────────
+
+export async function fetchSparkline(ticker: string, days = 20): Promise<number[]> {
+  try {
+    const to   = new Date().toISOString().slice(0, 10)
+    const from = new Date(Date.now() - days * 2 * 86_400_000).toISOString().slice(0, 10)
+    const data = await get<{ results: Array<{ c: number }> }>(
+      `/v2/aggs/ticker/${ticker}/range/1/day/${from}/${to}`,
+      { adjusted: 'true', sort: 'asc', limit: String(days) }
+    )
+    return (data.results ?? []).map(r => r.c)
   } catch { return [] }
 }
