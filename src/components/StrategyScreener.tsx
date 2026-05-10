@@ -69,14 +69,11 @@ function buildPayoffData(s: StrategyScreenResult, spot: number) {
   })
 }
 
-function StrategyCard({ s, spot, enrichment, watched, onSelectTicker, onTrade, onToggleWatch }: {
+function StrategyCard({ s, spot, enrichment, onTrade }: {
   s: StrategyScreenResult
   spot: number
   enrichment?: TickerEnrichment
-  watched: boolean
-  onSelectTicker: (t: string) => void
   onTrade: (s: StrategyScreenResult) => void
-  onToggleWatch: (ticker: string, watched: boolean) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [rationaleOpen, setRationaleOpen] = useState(false)
@@ -152,26 +149,12 @@ function StrategyCard({ s, spot, enrichment, watched, onSelectTicker, onTrade, o
           <ScoreRing score={s.score} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <button onClick={() => onSelectTicker(s.ticker)}
-                className="text-sm font-bold hover:underline" style={{ color: 'var(--text)' }}>
-                {s.ticker}
-              </button>
-              <button onClick={() => onToggleWatch(s.ticker, watched)} title={watched ? 'Remove from watchlist' : 'Add to watchlist'}>
-                <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
-                  style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
-              </button>
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: tc.bg, border: `1px solid ${tc.border}`, color: tc.text }}>
                 {s.type}
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ color: tc.text, background: tc.bg }}>
                 {s.thesis}
               </span>
-              {spot > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
-                  ${spot.toFixed(2)}
-                </span>
-              )}
             </div>
             <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{s.edge}</p>
             {/* Event badges */}
@@ -214,20 +197,23 @@ function StrategyCard({ s, spot, enrichment, watched, onSelectTicker, onTrade, o
         </div>
 
         {/* Leg summary */}
-        <div className="space-y-1 mb-3">
-          {s.legs.map((leg, i) => (
-            <div key={i} className="flex items-center justify-between text-[11px]">
-              <div className="flex items-center gap-2">
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${leg.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
+        <div className="space-y-1 mb-3 font-mono text-[11px]">
+          {s.legs.map((leg, i) => {
+            const strike = (leg as any).strike ?? leg.contract?.details?.strike_price ?? 0
+            const type   = ((leg as any).type ?? leg.contract?.details?.contract_type ?? '').toUpperCase()
+            const expiry = ((leg as any).expiry ?? leg.contract?.details?.expiration_date ?? '').slice(5)
+            return (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5rem 5rem 3.5rem 2rem 1fr', alignItems: 'center', gap: '0.375rem' }}>
+                <span className={`inline-flex items-center justify-center rounded text-[9px] font-bold py-0.5 ${leg.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
                   {leg.action}
                 </span>
-                <span style={{ color: 'var(--text-sub)' }}>
-                  ${((leg as any).strike ?? leg.contract?.details?.strike_price ?? 0)} {((leg as any).type ?? leg.contract?.details?.contract_type ?? '').toUpperCase()} · {((leg as any).expiry ?? leg.contract?.details?.expiration_date ?? '').slice(5)} · {s.dte}d
-                </span>
+                <span style={{ color: 'var(--text-sub)' }}>${strike} {type}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{expiry}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{s.dte}d</span>
+                <span className="text-right" style={{ color: 'var(--text-muted)' }}>${leg.price.toFixed(3)}</span>
               </div>
-              <span className="font-mono" style={{ color: 'var(--text-muted)' }}>${leg.price.toFixed(3)}</span>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* P&L summary + expand */}
@@ -381,6 +367,112 @@ function StrategyCard({ s, spot, enrichment, watched, onSelectTicker, onTrade, o
         )}
       </AnimatePresence>
     </motion.div>
+  )
+}
+
+function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTicker, onTrade, onToggleWatch }: {
+  ticker: string
+  strategies: StrategyScreenResult[]
+  spot: number
+  enrichment?: TickerEnrichment
+  watched: boolean
+  onSelectTicker: (t: string) => void
+  onTrade: (s: StrategyScreenResult) => void
+  onToggleWatch: (ticker: string, watched: boolean) => void
+}) {
+  const [open, setOpen] = useState(true)
+  const best = strategies[0]
+  const rsi = enrichment?.rsi ?? null
+  const earningsDays = enrichment?.earningsDate ? daysUntil(enrichment.earningsDate) : null
+  const earningsInWindow = earningsDays !== null && earningsDays >= 0 && earningsDays <= (best?.dte ?? 45)
+  const divDays = enrichment?.dividend?.exDate ? daysUntil(enrichment.dividend.exDate) : null
+  const divInWindow = divDays !== null && divDays >= 0 && divDays <= (best?.dte ?? 45)
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      {/* Group header */}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3"
+        onClick={() => setOpen(o => !o)}
+        style={{ background: 'rgba(99,102,241,0.04)' }}>
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Ticker + star */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold" style={{ color: 'var(--text)' }}
+              onClick={e => { e.stopPropagation(); onSelectTicker(ticker) }}>
+              {ticker}
+            </span>
+            <span onClick={e => { e.stopPropagation(); onToggleWatch(ticker, watched) }}>
+              <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
+                style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
+            </span>
+          </div>
+          {/* Spot price */}
+          {spot > 0 && (
+            <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
+              ${spot.toFixed(2)}
+            </span>
+          )}
+          {/* Key stats */}
+          <div className="flex items-center gap-2 text-[10px] font-mono">
+            {best && best.ivRank > 0 && (
+              <span style={{ color: best.ivRank > 50 ? '#10b981' : '#94a3b8' }}>IVR {best.ivRank}</span>
+            )}
+            {rsi !== null && (
+              <span style={{ color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' }}>RSI {rsi.toFixed(0)}</span>
+            )}
+          </div>
+          {/* Event badges */}
+          {earningsInWindow && (
+            <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
+              <Calendar className="w-2.5 h-2.5" />
+              Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
+            </span>
+          )}
+          {divInWindow && (
+            <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+              <DollarSign className="w-2.5 h-2.5" />
+              Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
+            {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
+          </span>
+          {open ? <ChevronUp className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                : <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />}
+        </div>
+      </button>
+
+      {/* Strategy cards */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="overflow-hidden">
+            <div className="px-3 pb-3 pt-1 space-y-2">
+              {strategies.map(s => (
+                <StrategyCard
+                  key={s.id}
+                  s={s}
+                  spot={spot}
+                  enrichment={enrichment}
+                  onTrade={onTrade}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -553,22 +645,31 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
         </div>
       )}
 
-      {!isLoading && (
-        <div className="space-y-3">
-          {filtered.slice(0, 20).map(s => (
-            <StrategyCard
-              key={s.id}
-              s={s}
-              spot={spotPrices[s.ticker] ?? 0}
-              enrichment={enrichmentMap?.[s.ticker]}
-              watched={watchlist.includes(s.ticker)}
-              onSelectTicker={onSelectTicker}
-              onTrade={onTrade}
-              onToggleWatch={(ticker, watched) => toggleWatch.mutate({ ticker, watched })}
-            />
-          ))}
-        </div>
-      )}
+      {!isLoading && (() => {
+        // Group filtered strategies by ticker, preserving best-score order
+        const groups = new Map<string, StrategyScreenResult[]>()
+        for (const s of filtered.slice(0, 40)) {
+          if (!groups.has(s.ticker)) groups.set(s.ticker, [])
+          groups.get(s.ticker)!.push(s)
+        }
+        return (
+          <div className="space-y-3">
+            {[...groups.entries()].map(([ticker, strats]) => (
+              <TickerGroup
+                key={ticker}
+                ticker={ticker}
+                strategies={strats}
+                spot={spotPrices[ticker] ?? 0}
+                enrichment={enrichmentMap?.[ticker]}
+                watched={watchlist.includes(ticker)}
+                onSelectTicker={onSelectTicker}
+                onTrade={onTrade}
+                onToggleWatch={(t, w) => toggleWatch.mutate({ ticker: t, watched: w })}
+              />
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }
