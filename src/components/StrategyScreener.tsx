@@ -442,10 +442,12 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
             {user && (
               <button
                 onClick={e => { e.stopPropagation(); setAlertSheetOpen(true) }}
-                className="relative p-1 rounded-lg"
-                style={{ background: alertCount > 0 ? 'rgba(99,102,241,0.15)' : 'transparent' }}
-                title="Set alert">
-                <Bell className="w-3.5 h-3.5" style={{ color: alertCount > 0 ? '#a5b4fc' : 'var(--text-muted)' }} />
+                className="relative p-1.5 rounded-lg"
+                style={alertCount > 0
+                  ? { background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }
+                  : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                title="Set price alert">
+                <Bell className="w-3.5 h-3.5" style={{ color: alertCount > 0 ? '#a5b4fc' : '#94a3b8' }} />
                 {alertCount > 0 && (
                   <span className="absolute -top-1 -right-1 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center"
                     style={{ background: '#6366f1', color: '#fff' }}>
