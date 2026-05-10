@@ -30,7 +30,7 @@ function buildPayoff(trade: Trade, spot: number) {
   })
 }
 
-function OpenCard({ trade, spot, pnl, onClose, onDelete }: { trade: Trade; spot: number; pnl?: TradePnL; onClose: (id: string) => void; onDelete: (id: string) => void }) {
+function OpenCard({ trade, spot, pnl, closing, onClose, onDelete }: { trade: Trade; spot: number; pnl?: TradePnL; closing?: boolean; onClose: (trade: Trade) => void; onDelete: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const maxProfit = (trade.strategy_data?.max_profit ?? 0) * trade.quantity
   const maxLoss   = (trade.strategy_data?.max_loss   ?? 0) * trade.quantity
@@ -115,10 +115,10 @@ function OpenCard({ trade, spot, pnl, onClose, onDelete }: { trade: Trade; spot:
             style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--accent)' }}>
             {expanded ? 'Hide payoff' : 'Payoff diagram'}
           </button>
-          <button onClick={() => onClose(trade.id)}
+          <button onClick={() => onClose(trade)} disabled={closing}
             className="flex-1 py-2 rounded-xl text-[11px] font-medium"
-            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
-            Close position
+            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5', opacity: closing ? 0.6 : 1 }}>
+            {closing ? 'Fetching prices…' : 'Close position'}
           </button>
           <button onClick={() => onDelete(trade.id)}
             className="w-8 flex items-center justify-center rounded-xl"
@@ -165,31 +165,48 @@ function OpenCard({ trade, spot, pnl, onClose, onDelete }: { trade: Trade; spot:
 }
 
 function ClosedCard({ trade, onDelete }: { trade: Trade; onDelete: (id: string) => void }) {
-  const pnl      = trade.exit_price != null ? trade.exit_price * trade.quantity : 0
-  const isProfit = pnl >= 0
+  const totalPnL   = trade.exit_price != null ? trade.exit_price * trade.quantity : null
+  const maxProfit  = (trade.strategy_data?.max_profit ?? 0) * trade.quantity
+  const isProfit   = totalPnL !== null && totalPnL >= 0
+  const capturePct = totalPnL !== null && maxProfit > 0
+    ? Math.round((totalPnL / maxProfit) * 100)
+    : null
+
   return (
-    <div className="flex items-center justify-between rounded-xl px-3 py-2.5"
-      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>{trade.ticker}</span>
-        <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold"
-          style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}>
-          {trade.strategy_type}
-        </span>
-        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-          {trade.quantity} contract{trade.quantity > 1 ? 's' : ''}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-          {trade.exit_time ? new Date(trade.exit_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
-        </span>
-        <span className="text-xs font-mono font-semibold" style={{ color: isProfit ? '#10b981' : '#ef4444' }}>
-          {isProfit ? '+' : ''}${pnl.toFixed(0)}
-        </span>
-        <button onClick={() => onDelete(trade.id)} title="Delete">
-          <Trash2 className="w-3.5 h-3.5 text-red-400 opacity-50 hover:opacity-100" />
-        </button>
+    <div className="rounded-xl px-3 py-2.5"
+      style={{ background: 'var(--bg-card)', border: `1px solid ${totalPnL === null ? 'var(--border)' : isProfit ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>{trade.ticker}</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold"
+            style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}>
+            {trade.strategy_type}
+          </span>
+          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+            {trade.quantity}× · {trade.exit_time
+              ? new Date(trade.exit_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              : ''}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {totalPnL !== null ? (
+            <div className="text-right">
+              <p className="text-xs font-mono font-bold" style={{ color: isProfit ? '#10b981' : '#ef4444' }}>
+                {isProfit ? '+' : ''}${totalPnL.toFixed(0)}
+              </p>
+              {capturePct !== null && (
+                <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                  {capturePct}% of max
+                </p>
+              )}
+            </div>
+          ) : (
+            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>—</span>
+          )}
+          <button onClick={() => onDelete(trade.id)} title="Delete">
+            <Trash2 className="w-3.5 h-3.5 text-red-400 opacity-50 hover:opacity-100" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -210,7 +227,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
 
   const totalMaxProfit = open.reduce((s, t) => s + (t.strategy_data?.max_profit ?? 0) * t.quantity, 0)
   const totalMaxLoss   = open.reduce((s, t) => s + (t.strategy_data?.max_loss   ?? 0) * t.quantity, 0)
-  const realisedPnl    = closed.reduce((s, t) => s + (t.exit_price ?? 0) * t.quantity, 0)
+  const realisedPnl = closed.reduce((s, t) => s + (t.exit_price != null ? t.exit_price * t.quantity : 0), 0)
 
   const totalLivePnL = livePnL
     ? open.reduce((s, t) => {
@@ -220,8 +237,8 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
     : null
   const hasAnyLivePnL = livePnL && open.some(t => livePnL[t.id]?.totalPnL != null)
 
-  function handleClose(id: string) {
-    closeTrade.mutate({ id, exit_price: 0 })
+  function handleClose(trade: Trade) {
+    closeTrade.mutate(trade)
   }
 
   function handleDelete(id: string) {
@@ -386,7 +403,8 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
           <div className="space-y-3">
             {open.map(t => (
               <OpenCard key={t.id} trade={t} spot={spotPrices[t.ticker] ?? 0}
-                pnl={livePnL?.[t.id]} onClose={handleClose} onDelete={handleDelete} />
+                pnl={livePnL?.[t.id]} closing={closeTrade.isPending}
+                onClose={handleClose} onDelete={handleDelete} />
             ))}
           </div>
         )
