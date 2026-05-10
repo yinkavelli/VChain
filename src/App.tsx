@@ -105,7 +105,7 @@ export default function App() {
           {activeTab === 'strategies' && (
             <motion.div key="strategies"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <StrategyScreener spotPrices={spotPrices} onSelectTicker={handleSelectTicker} onTrade={setTradeStrategy} />
+              <StrategyScreener spotPrices={spotPrices} onSelectTicker={handleSelectTicker} onTrade={setTradeStrategy} user={user} />
             </motion.div>
           )}
           {activeTab === 'chains' && (

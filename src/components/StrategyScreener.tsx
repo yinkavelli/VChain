@@ -1,15 +1,18 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles, Calendar, DollarSign } from 'lucide-react'
+import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles, Calendar, DollarSign, Star } from 'lucide-react'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
 import { useTickerEnrichment, type TickerEnrichment } from '../hooks/useTickerEnrichment'
+import { useWatchlist, useToggleWatchlist } from '../hooks/useWatchlist'
 import type { Thesis } from '../lib/strategyScorer'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea } from 'recharts'
+import type { User } from '@supabase/supabase-js'
 
 interface Props {
   spotPrices: Record<string, number>
   onSelectTicker: (ticker: string) => void
   onTrade: (s: StrategyScreenResult) => void
+  user: User | null
 }
 
 function daysUntil(dateStr: string): number {
@@ -66,12 +69,14 @@ function buildPayoffData(s: StrategyScreenResult, spot: number) {
   })
 }
 
-function StrategyCard({ s, spot, enrichment, onSelectTicker, onTrade }: {
+function StrategyCard({ s, spot, enrichment, watched, onSelectTicker, onTrade, onToggleWatch }: {
   s: StrategyScreenResult
   spot: number
   enrichment?: TickerEnrichment
+  watched: boolean
   onSelectTicker: (t: string) => void
   onTrade: (s: StrategyScreenResult) => void
+  onToggleWatch: (ticker: string, watched: boolean) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [rationaleOpen, setRationaleOpen] = useState(false)
@@ -150,6 +155,10 @@ function StrategyCard({ s, spot, enrichment, onSelectTicker, onTrade }: {
               <button onClick={() => onSelectTicker(s.ticker)}
                 className="text-sm font-bold hover:underline" style={{ color: 'var(--text)' }}>
                 {s.ticker}
+              </button>
+              <button onClick={() => onToggleWatch(s.ticker, watched)} title={watched ? 'Remove from watchlist' : 'Add to watchlist'}>
+                <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
+                  style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
               </button>
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: tc.bg, border: `1px solid ${tc.border}`, color: tc.text }}>
                 {s.type}
@@ -383,14 +392,22 @@ const SCORING_NOTES = [
   { label: 'Score', desc: 'Composite 0–100. Weights: IV Rank 25%, IV/HV ratio 25%, annualised yield 25%, PoP 15%, DTE sweet spot 10%.' },
 ]
 
-export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props) {
-  const [thesis, setThesis]       = useState<Thesis | 'All'>('All')
-  const [minScore, setMinScore]   = useState(50)
-  const [showScoring, setScoring] = useState(false)
+export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: Props) {
+  const [thesis, setThesis]         = useState<Thesis | 'All'>('All')
+  const [minScore, setMinScore]     = useState(50)
+  const [showScoring, setScoring]   = useState(false)
+  const [watchlistOnly, setWatchlistOnly] = useState(false)
 
   const { data: strategies = [], isLoading, dataUpdatedAt } = useStrategyScreener(spotPrices, thesis, minScore)
   const rescan = useRescan()
-  const filtered = strategies.filter(s => (thesis === 'All' || s.thesis === thesis) && s.score >= minScore)
+  const { data: watchlist = [] } = useWatchlist(user?.id)
+  const toggleWatch = useToggleWatchlist(user?.id)
+
+  const filtered = strategies.filter(s =>
+    (thesis === 'All' || s.thesis === thesis) &&
+    s.score >= minScore &&
+    (!watchlistOnly || watchlist.includes(s.ticker))
+  )
   const visibleTickers = [...new Set(filtered.slice(0, 20).map(s => s.ticker))]
   const { data: enrichmentMap } = useTickerEnrichment(visibleTickers)
   const scanMsg = rescan.isSuccess
@@ -423,6 +440,17 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props)
             </span>
           )}
           {(isLoading || rescan.isPending) && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />}
+          {user && (
+            <button onClick={() => setWatchlistOnly(w => !w)}
+              className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
+              style={watchlistOnly
+                ? { background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', color: '#fcd34d' }
+                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}>
+              <Star className="w-3 h-3" fill={watchlistOnly ? '#fcd34d' : 'none'}
+                style={{ color: watchlistOnly ? '#fcd34d' : 'var(--text-muted)' }} />
+              {watchlistOnly ? `Watchlist (${watchlist.length})` : 'Watchlist'}
+            </button>
+          )}
           {!isLoading && !rescan.isPending && (
             <button onClick={() => rescan.mutate()}
               className="text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
@@ -505,9 +533,23 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props)
       {/* Strategy cards */}
       {!isLoading && filtered.length === 0 && (
         <div className="rounded-2xl p-10 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <BarChart2 className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>No plays at this score threshold</p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Try lowering the min score or changing the thesis filter</p>
+          {watchlistOnly && watchlist.length === 0 ? (
+            <>
+              <Star className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>Your watchlist is empty</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Star any ticker on a strategy card to add it</p>
+            </>
+          ) : (
+            <>
+              <BarChart2 className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>
+                {watchlistOnly ? 'No strategies for your watchlist tickers' : 'No plays at this score threshold'}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {watchlistOnly ? 'Try lowering the min score or rescanning' : 'Try lowering the min score or changing the thesis filter'}
+              </p>
+            </>
+          )}
         </div>
       )}
 
@@ -519,8 +561,10 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade }: Props)
               s={s}
               spot={spotPrices[s.ticker] ?? 0}
               enrichment={enrichmentMap?.[s.ticker]}
+              watched={watchlist.includes(s.ticker)}
               onSelectTicker={onSelectTicker}
               onTrade={onTrade}
+              onToggleWatch={(ticker, watched) => toggleWatch.mutate({ ticker, watched })}
             />
           ))}
         </div>
