@@ -529,7 +529,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
     s.score >= minScore &&
     (!watchlistOnly || watchlist.includes(s.ticker))
   )
-  const visibleTickers = [...new Set(filtered.slice(0, 20).map(s => s.ticker))]
+  const visibleTickers = [...new Set(filtered.slice(0, 40).map(s => s.ticker))]
   const { data: enrichmentMap } = useTickerEnrichment(visibleTickers)
   const scanMsg = rescan.isSuccess
     ? `✓ Saved ${(rescan.data as any)?.saved ?? 0}`
