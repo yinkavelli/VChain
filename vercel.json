@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/strategy-scan",
       "schedule": "0 14 * * 1-5"
+    },
+    {
+      "path": "/api/alerts-check",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

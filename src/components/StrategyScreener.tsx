@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles, Calendar, DollarSign, Star } from 'lucide-react'
+import { ChevronDown, ChevronUp, BarChart2, Loader2, AlertTriangle, Sparkles, Calendar, DollarSign, Star, Bell } from 'lucide-react'
+import { AlertSheet } from './AlertSheet'
 import { useStrategyScreener, useRescan, type StrategyScreenResult } from '../hooks/useStrategyScreener'
 import { useTickerEnrichment, type TickerEnrichment } from '../hooks/useTickerEnrichment'
 import { useWatchlist, useToggleWatchlist } from '../hooks/useWatchlist'
+import { useAlerts } from '../hooks/useAlerts'
 import type { Thesis } from '../lib/strategyScorer'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea } from 'recharts'
 import type { User } from '@supabase/supabase-js'
@@ -361,17 +363,20 @@ function timeAgo(utc: string): string {
   return `${Math.round(diff / 86400)}d ago`
 }
 
-function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTicker, onTrade, onToggleWatch }: {
+function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, alertCount, onSelectTicker, onTrade, onToggleWatch }: {
   ticker: string
   strategies: StrategyScreenResult[]
   spot: number
   enrichment?: TickerEnrichment
   watched: boolean
+  user: import('@supabase/supabase-js').User | null
+  alertCount: number
   onSelectTicker: (t: string) => void
   onTrade: (s: StrategyScreenResult) => void
   onToggleWatch: (ticker: string, watched: boolean) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [alertSheetOpen, setAlertSheetOpen] = useState(false)
   const best = strategies[0]
   const rsi = enrichment?.rsi ?? null
   const earningsDays = enrichment?.earningsDate ? daysUntil(enrichment.earningsDate) : null
@@ -432,8 +437,23 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
             {sparkline.length >= 2 && <Sparkline closes={sparkline} width={72} height={32} />}
           </div>
 
-          {/* Right: play count + chevron */}
+          {/* Right: bell + play count + chevron */}
           <div className="flex items-center gap-1.5 flex-shrink-0 ml-1">
+            {user && (
+              <button
+                onClick={e => { e.stopPropagation(); setAlertSheetOpen(true) }}
+                className="relative p-1 rounded-lg"
+                style={{ background: alertCount > 0 ? 'rgba(99,102,241,0.15)' : 'transparent' }}
+                title="Set alert">
+                <Bell className="w-3.5 h-3.5" style={{ color: alertCount > 0 ? '#a5b4fc' : 'var(--text-muted)' }} />
+                {alertCount > 0 && (
+                  <span className="absolute -top-1 -right-1 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                    style={{ background: '#6366f1', color: '#fff' }}>
+                    {alertCount}
+                  </span>
+                )}
+              </button>
+            )}
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
               {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
@@ -501,6 +521,15 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, onSelectTi
           </motion.div>
         )}
       </AnimatePresence>
+
+      {alertSheetOpen && user && (
+        <AlertSheet
+          ticker={ticker}
+          spot={spot}
+          userId={user.id}
+          onClose={() => setAlertSheetOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -523,6 +552,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
   const rescan = useRescan()
   const { data: watchlist = [] } = useWatchlist(user?.id)
   const toggleWatch = useToggleWatchlist(user?.id)
+  const { data: alerts = [] } = useAlerts(user?.id)
 
   const filtered = strategies.filter(s =>
     (thesis === 'All' || s.thesis === thesis) &&
@@ -691,6 +721,8 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
                 spot={spotPrices[ticker] ?? 0}
                 enrichment={enrichmentMap?.[ticker]}
                 watched={watchlist.includes(ticker)}
+                user={user}
+                alertCount={alerts.filter(a => a.ticker === ticker && !a.triggered).length}
                 onSelectTicker={onSelectTicker}
                 onTrade={onTrade}
                 onToggleWatch={(t, w) => toggleWatch.mutate({ ticker: t, watched: w })}
