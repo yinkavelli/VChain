@@ -525,7 +525,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
             <div key={i} className="h-40 rounded-2xl animate-pulse" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.12)' }} />
           ))}
           <p className="text-center text-xs py-2" style={{ color: 'var(--text-muted)' }}>
-            Analysing options chains across {'{'}35{'}'} stocks…
+            Analysing options chains across {Object.keys(spotPrices).length} stocks…
           </p>
         </div>
       )}
