@@ -510,7 +510,7 @@ export function AdvisorView({ strategies, marketMetrics, sectorData, user }: Pro
             onChange={handleInputChange} onKeyDown={handleKeyDown}
             placeholder="Ask about any trade, strategy or market view…"
             rows={1} disabled={loading}
-            className="flex-1 resize-none text-[13px] focus:outline-none bg-transparent leading-relaxed"
+            className="flex-1 resize-none text-[13px] focus:outline-none bg-transparent leading-relaxed no-scrollbar"
             style={{ color: 'var(--text)', minHeight: 22, maxHeight: 120 }} />
           <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
             className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all"
