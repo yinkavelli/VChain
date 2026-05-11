@@ -10,6 +10,20 @@ import type { Thesis } from '../lib/strategyScorer'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea } from 'recharts'
 import type { User } from '@supabase/supabase-js'
 
+// ── Accent color system ────────────────────────────────────────────────
+const ACCENTS = [
+  { primary: '#f59e0b', soft: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.28)', glow: 'rgba(245,158,11,0.18)', id: 'amber'   },
+  { primary: '#3b82f6', soft: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.28)',  glow: 'rgba(59,130,246,0.18)',  id: 'blue'    },
+  { primary: '#10b981', soft: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.28)',  glow: 'rgba(16,185,129,0.18)',  id: 'emerald' },
+  { primary: '#8b5cf6', soft: 'rgba(139,92,246,0.12)',  border: 'rgba(139,92,246,0.28)',  glow: 'rgba(139,92,246,0.18)',  id: 'violet'  },
+  { primary: '#ef4444', soft: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.28)',   glow: 'rgba(239,68,68,0.18)',   id: 'crimson' },
+  { primary: '#06b6d4', soft: 'rgba(6,182,212,0.12)',   border: 'rgba(6,182,212,0.28)',   glow: 'rgba(6,182,212,0.18)',   id: 'cyan'    },
+]
+function tickerAccent(ticker: string) {
+  const hash = ticker.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+  return ACCENTS[hash % ACCENTS.length]
+}
+
 interface Props {
   spotPrices: Record<string, number>
   onSelectTicker: (ticker: string) => void
@@ -133,10 +147,14 @@ function StrategyCard({ s, spot, onTrade }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${tc.bg} 0%, rgba(13,13,32,0.97) 100%)`, border: `1px solid ${tc.border}` }}>
+      className="glass-card-inner overflow-hidden"
+      style={{
+        border: `1px solid ${tc.border}`,
+        boxShadow: `0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`,
+        background: `linear-gradient(145deg, ${tc.bg} 0%, rgba(8,8,20,0.95) 100%)`,
+      }}>
 
       {/* Main row */}
       <div className="p-4 pb-3">
@@ -337,21 +355,31 @@ function StrategyCard({ s, spot, onTrade }: {
   )
 }
 
-function Sparkline({ closes, width = 80, height = 36 }: { closes: number[]; width?: number; height?: number }) {
+function Sparkline({ closes, width = 80, height = 40, accentColor }: { closes: number[]; width?: number; height?: number; accentColor?: string }) {
   if (closes.length < 2) return null
   const min = Math.min(...closes)
   const max = Math.max(...closes)
   const range = max - min || 1
-  const pts = closes.map((c, i) => {
-    const x = (i / (closes.length - 1)) * width
-    const y = height - ((c - min) / range) * height
-    return `${x.toFixed(1)},${y.toFixed(1)}`
-  }).join(' ')
-  const rising = closes[closes.length - 1] >= closes[0]
-  const color  = rising ? '#10b981' : '#ef4444'
+  const pad = 3
+  const points = closes.map((c, i) => ({
+    x: (i / (closes.length - 1)) * width,
+    y: pad + (1 - (c - min) / range) * (height - pad * 2),
+  }))
+  const linePts  = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+  const fillPath = `M${points[0].x},${height} ` + points.map(p => `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ` L${points[points.length-1].x},${height} Z`
+  const rising   = closes[closes.length - 1] >= closes[0]
+  const color    = accentColor ?? (rising ? '#10b981' : '#ef4444')
+  const gradId   = `spark-${Math.random().toString(36).slice(2,7)}`
   return (
-    <svg width={width} height={height} style={{ display: 'block', flexShrink: 0 }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    <svg width={width} height={height} style={{ display: 'block', flexShrink: 0, filter: `drop-shadow(0 0 4px ${color}66)` }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fillPath} fill={`url(#${gradId})`} />
+      <polyline points={linePts} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
@@ -386,17 +414,26 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
   const sparkline = enrichment?.sparkline ?? []
   const news = enrichment?.news ?? []
 
+  const ac = tickerAccent(ticker)
+
   const ivMetrics = [
-    best && best.ivRank > 0    ? { label: 'IVR',   value: String(best.ivRank),             color: best.ivRank > 50 ? '#10b981' : '#94a3b8' } : null,
-    best && best.ivHvRatio > 0 ? { label: 'IV/HV', value: `${best.ivHvRatio.toFixed(2)}×`, color: best.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8' } : null,
-    rsi !== null               ? { label: 'RSI',   value: rsi.toFixed(0),                  color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b' } : null,
-  ].filter(Boolean) as { label: string; value: string; color: string }[]
+    best && best.ivRank > 0    ? { label: 'IVR',   value: String(best.ivRank),             color: best.ivRank > 50 ? '#10b981' : '#94a3b8', sub: best.ivRank > 50 ? 'Elevated' : best.ivRank > 30 ? 'Moderate' : 'Low' } : null,
+    best && best.ivHvRatio > 0 ? { label: 'IV/HV', value: `${best.ivHvRatio.toFixed(2)}×`, color: best.ivHvRatio > 1.2 ? '#10b981' : '#94a3b8', sub: best.ivHvRatio > 1.2 ? 'Rich' : 'Fair' } : null,
+    rsi !== null               ? { label: 'RSI',   value: rsi.toFixed(0),                  color: rsi > 70 ? '#ef4444' : rsi < 30 ? '#10b981' : '#f59e0b', sub: rsi > 70 ? 'Overbought' : rsi < 30 ? 'Oversold' : 'Neutral' } : null,
+  ].filter(Boolean) as { label: string; value: string; color: string; sub: string }[]
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card overflow-hidden"
+      style={{
+        border: `1px solid ${ac.border}`,
+        boxShadow: `0 0 28px ${ac.glow}, 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)`,
+      }}>
       {/* Group header — always visible */}
       <button className="w-full text-left px-4 pt-4 pb-3" onClick={() => setOpen(o => !o)}
-        style={{ background: 'rgba(99,102,241,0.04)' }}>
+        style={{ background: `linear-gradient(135deg, ${ac.soft} 0%, transparent 60%)` }}>
 
         {/* Row 1: ticker + star + actions */}
         <div className="flex items-center justify-between mb-2">
@@ -434,7 +471,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
               </button>
             )}
             <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
+              style={{ background: ac.soft, border: `1px solid ${ac.border}`, color: ac.primary, boxShadow: `0 0 8px ${ac.glow}` }}>
               {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
             </span>
             {open
@@ -451,17 +488,19 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
         )}
 
         {/* Row 3: metric cards + sparkline */}
-        <div className="flex items-center gap-2 mb-2.5">
+        <div className="flex items-center gap-2 mb-3">
           {ivMetrics.map(m => (
-            <div key={m.label} className="flex-1 rounded-xl px-3 py-2 text-center"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-[9px] uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
-              <p className="text-sm font-bold font-mono" style={{ color: m.color }}>{m.value}</p>
+            <div key={m.label} className="metric-glass flex-1 px-3 py-2.5 text-center"
+              style={{ border: `1px solid rgba(255,255,255,0.07)`, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)' }}>
+              <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
+              <p className="text-sm font-bold font-mono leading-none mb-1" style={{ color: m.color }}>{m.value}</p>
+              <p className="text-[8px]" style={{ color: m.color, opacity: 0.7 }}>{m.sub}</p>
             </div>
           ))}
           {sparkline.length >= 2 && (
-            <div className="flex-shrink-0">
-              <Sparkline closes={sparkline} width={80} height={40} />
+            <div className="flex-shrink-0 rounded-xl overflow-hidden p-1"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <Sparkline closes={sparkline} width={76} height={44} accentColor={ac.primary} />
             </div>
           )}
         </div>
@@ -488,17 +527,20 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
 
         {/* Row 5: news headlines */}
         {news.length > 0 && (
-          <div className="space-y-1.5">
-            {news.slice(0, 2).map(n => (
+          <div className="space-y-0 rounded-xl overflow-hidden"
+            style={{ border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+            {news.slice(0, 2).map((n, i) => (
               <a key={n.id} href={n.article_url} target="_blank" rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="flex items-start gap-2 group">
-                <span className="text-[10px] mt-0.5 flex-shrink-0" style={{ color: 'var(--accent)' }}>▸</span>
+                className="flex items-start gap-2.5 px-3 py-2 group"
+                style={i > 0 ? { borderTop: '1px solid rgba(255,255,255,0.05)' } : {}}>
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ background: ac.primary, boxShadow: `0 0 6px ${ac.primary}` }} />
                 <p className="text-[11px] leading-snug group-hover:underline flex-1 min-w-0"
                   style={{ color: 'var(--text-sub)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {n.title}
                 </p>
-                <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-[10px] flex-shrink-0 pt-0.5" style={{ color: 'var(--text-muted)' }}>
                   {timeAgo(n.published_utc)}
                 </span>
               </a>
@@ -533,7 +575,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
           onClose={() => setAlertSheetOpen(false)}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
