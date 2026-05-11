@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RefreshCw, Link2, LogIn, LogOut } from 'lucide-react'
+import { RefreshCw, Link2, LogIn, LogOut, Sun, Moon } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTheme } from './hooks/useTheme'
 import { BottomNav } from './components/BottomNav'
 import { Ticker } from './components/Ticker'
 import { DashboardView } from './components/DashboardView'
@@ -21,6 +22,7 @@ export default function App() {
   const [tradeStrategy, setTradeStrategy] = useState<StrategyScreenResult | null>(null)
   const qc = useQueryClient()
   const { user, signInWithGoogle, signOut } = useAuth()
+  const { dark, toggle: toggleTheme } = useTheme()
 
   const { data: stocks = [], isLoading } = useScreener()
   const spotPrice  = stocks.find(r => r.ticker === selectedTicker)?.price ?? 0
@@ -77,7 +79,15 @@ export default function App() {
                 <LogIn className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
               </button>
             )}
-<button onClick={handleRefresh}
+<button onClick={toggleTheme}
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+              style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}
+              title={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+              {dark
+                ? <Sun className="w-3.5 h-3.5" style={{ color: '#f59e0b' }} />
+                : <Moon className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />}
+            </button>
+            <button onClick={handleRefresh}
               className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
               style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing || isLoading ? 'animate-spin' : ''}`}
