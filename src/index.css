@@ -217,3 +217,36 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   pointer-events: none;
   z-index: 0;
 }
+
+/* ── Stat card color variants (light = subtle tint, dark = deep gradient) ── */
+.stat-indigo  { background: linear-gradient(135deg, rgba(99,102,241,0.13) 0%, rgba(99,102,241,0.04) 100%); border-color: rgba(99,102,241,0.35) !important; }
+.stat-emerald { background: linear-gradient(135deg, rgba(16,185,129,0.13) 0%, rgba(16,185,129,0.04) 100%); border-color: rgba(16,185,129,0.35) !important; }
+.stat-violet  { background: linear-gradient(135deg, rgba(139,92,246,0.13) 0%, rgba(139,92,246,0.04) 100%); border-color: rgba(139,92,246,0.35) !important; }
+.stat-red     { background: linear-gradient(135deg, rgba(239,68,68,0.13)  0%, rgba(239,68,68,0.04)  100%); border-color: rgba(239,68,68,0.35)  !important; }
+.stat-amber   { background: linear-gradient(135deg, rgba(245,158,11,0.13) 0%, rgba(245,158,11,0.04) 100%); border-color: rgba(245,158,11,0.35) !important; }
+
+.dark .stat-indigo  { background: linear-gradient(135deg, rgba(49,46,129,0.55)   0%, rgba(30,27,75,0.22)   100%); border-color: rgba(99,102,241,0.5)  !important; }
+.dark .stat-emerald { background: linear-gradient(135deg, rgba(6,78,59,0.55)     0%, rgba(2,44,34,0.22)    100%); border-color: rgba(16,185,129,0.5)  !important; }
+.dark .stat-violet  { background: linear-gradient(135deg, rgba(76,29,149,0.55)   0%, rgba(46,16,101,0.22)  100%); border-color: rgba(139,92,246,0.5)  !important; }
+.dark .stat-red     { background: linear-gradient(135deg, rgba(127,29,29,0.55)   0%, rgba(69,10,10,0.22)   100%); border-color: rgba(239,68,68,0.5)   !important; }
+.dark .stat-amber   { background: linear-gradient(135deg, rgba(120,53,15,0.55)   0%, rgba(69,26,3,0.22)    100%); border-color: rgba(245,158,11,0.5)  !important; }
+
+/* ── Shimmer animation for stat cards ──────────────────────────── */
+@keyframes card-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.card-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: card-shimmer 3s infinite linear;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+.dark .card-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.07) 50%, transparent 100%);
+  background-size: 200% 100%;
+}

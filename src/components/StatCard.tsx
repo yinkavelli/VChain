@@ -21,12 +21,48 @@ interface Props {
 }
 
 const colorMap = {
-  indigo:  { primary: '#6366f1', soft: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.3)',  glow: 'rgba(99,102,241,0.2)',  icon: 'rgba(99,102,241,0.15)'  },
-  emerald: { primary: '#10b981', soft: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',  glow: 'rgba(16,185,129,0.2)',  icon: 'rgba(16,185,129,0.15)'  },
-  violet:  { primary: '#8b5cf6', soft: 'rgba(139,92,246,0.12)',  border: 'rgba(139,92,246,0.3)',  glow: 'rgba(139,92,246,0.2)',  icon: 'rgba(139,92,246,0.15)'  },
-  red:     { primary: '#ef4444', soft: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)',   glow: 'rgba(239,68,68,0.2)',   icon: 'rgba(239,68,68,0.15)'   },
-  amber:   { primary: '#f59e0b', soft: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',  glow: 'rgba(245,158,11,0.2)',  icon: 'rgba(245,158,11,0.15)'  },
+  indigo:  {
+    primary: '#818cf8',
+    gradStart: 'rgba(49,46,129,0.55)',
+    gradEnd:   'rgba(30,27,75,0.25)',
+    border:    'rgba(99,102,241,0.5)',
+    iconBg:    'rgba(99,102,241,0.2)',
+    glow:      '0 4px 24px rgba(99,102,241,0.25)',
+  },
+  emerald: {
+    primary: '#34d399',
+    gradStart: 'rgba(6,78,59,0.55)',
+    gradEnd:   'rgba(2,44,34,0.25)',
+    border:    'rgba(16,185,129,0.5)',
+    iconBg:    'rgba(16,185,129,0.2)',
+    glow:      '0 4px 24px rgba(16,185,129,0.22)',
+  },
+  violet:  {
+    primary: '#a78bfa',
+    gradStart: 'rgba(76,29,149,0.55)',
+    gradEnd:   'rgba(46,16,101,0.25)',
+    border:    'rgba(139,92,246,0.5)',
+    iconBg:    'rgba(139,92,246,0.2)',
+    glow:      '0 4px 24px rgba(139,92,246,0.22)',
+  },
+  red:     {
+    primary: '#f87171',
+    gradStart: 'rgba(127,29,29,0.55)',
+    gradEnd:   'rgba(69,10,10,0.25)',
+    border:    'rgba(239,68,68,0.5)',
+    iconBg:    'rgba(239,68,68,0.2)',
+    glow:      '0 4px 24px rgba(239,68,68,0.22)',
+  },
+  amber:   {
+    primary: '#fbbf24',
+    gradStart: 'rgba(120,53,15,0.55)',
+    gradEnd:   'rgba(69,26,3,0.25)',
+    border:    'rgba(245,158,11,0.5)',
+    iconBg:    'rgba(245,158,11,0.2)',
+    glow:      '0 4px 24px rgba(245,158,11,0.22)',
+  },
 }
+
 
 export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0, tooltip }: Props) {
   const [open, setOpen] = useState(false)
@@ -38,28 +74,41 @@ export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0,
         <InfoCard title={tooltip.title} body={tooltip.body} how={tooltip.how} signal={tooltip.signal} onClose={() => setOpen(false)} />
       )}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay }}
+        transition={{ delay, duration: 0.4 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => tooltip && setOpen(true)}
-        className={`glass-card p-4 ${tooltip ? 'cursor-pointer' : ''}`}
-        style={{
-          border: `1px solid ${c.border}`,
-          boxShadow: `0 0 20px ${c.glow}, var(--card-shadow)`,
-          background: `linear-gradient(145deg, ${c.soft} 0%, var(--card-end) 100%)`,
-        }}>
-        <div className="flex items-start justify-between mb-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: c.icon, border: `1px solid ${c.border}` }}>
-            <span style={{ color: c.primary }}>{icon}</span>
+        className={`stat-${color} relative overflow-hidden rounded-2xl p-4 border ${tooltip ? 'cursor-pointer' : ''}`}
+        style={{ boxShadow: c.glow }}>
+
+        {/* Shimmer sweep */}
+        <div className="card-shimmer" />
+
+        {/* Card content — above shimmer */}
+        <div className="relative z-10">
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: c.iconBg }}>
+              <span style={{ color: c.primary }}>{icon}</span>
+            </div>
+            {tooltip && (
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md"
+                style={{ color: c.primary, background: c.iconBg }}>tap</span>
+            )}
           </div>
-          {tooltip && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-md"
-            style={{ color: c.primary, background: c.icon }}>tap</span>}
+          <p className="text-[10px] uppercase tracking-widest mb-1.5 font-medium" style={{ color: 'var(--text-muted)' }}>
+            {label}
+          </p>
+          <p className="text-2xl font-bold" style={{ color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
+            {value}
+          </p>
+          {sub && (
+            <p className="text-[11px] mt-1.5 font-medium leading-snug" style={{ color: 'var(--text-sub)' }}>
+              {sub}
+            </p>
+          )}
         </div>
-        <p className="text-[10px] uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
-        <p className="text-2xl font-bold font-mono" style={{ color: 'var(--text)' }}>{value}</p>
-        {sub && <p className="text-[10px] mt-1.5 leading-relaxed" style={{ color: 'var(--text-sub)' }}>{sub}</p>}
       </motion.div>
     </>
   )
