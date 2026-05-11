@@ -139,8 +139,8 @@ function StrategyCard({ s, spot, onTrade }: {
       style={{ background: `linear-gradient(135deg, ${tc.bg} 0%, rgba(13,13,32,0.97) 100%)`, border: `1px solid ${tc.border}` }}>
 
       {/* Main row */}
-      <div className="p-4">
-        <div className="flex items-start gap-3 mb-3">
+      <div className="p-4 pb-3">
+        <div className="flex items-start gap-3 mb-4">
           <ScoreRing score={s.score} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -157,29 +157,29 @@ function StrategyCard({ s, spot, onTrade }: {
 
 
         {/* Key metrics */}
-        <div className="grid grid-cols-4 gap-1.5 mb-3">
+        <div className="grid grid-cols-4 gap-2 mb-4">
           {[
-            { label: 'PoP',      value: `${s.pop}%`,                                                color: s.pop > 65 ? '#10b981' : '#f59e0b' },
-            { label: 'Yield/yr', value: s.premiumYield > 0 ? `${s.premiumYield.toFixed(0)}%` : '—', color: '#6366f1' },
+            { label: 'PoP',        value: `${s.pop}%`,                                                color: s.pop > 65 ? '#10b981' : '#f59e0b' },
+            { label: 'Yield/yr',   value: s.premiumYield > 0 ? `${s.premiumYield.toFixed(0)}%` : '—', color: '#6366f1' },
             { label: 'Max Profit', value: s.maxProfit === Infinity ? '∞' : `$${(s.maxProfit * 100).toFixed(0)}`, color: '#10b981' },
             { label: 'Max Loss',   value: s.maxLoss   === Infinity ? '∞' : `-$${(s.maxLoss * 100).toFixed(0)}`,  color: '#ef4444' },
           ].map(m => (
-            <div key={m.label} className="rounded-xl px-2 py-1.5 text-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
-              <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
-              <p className="text-xs font-bold font-mono" style={{ color: m.color }}>{m.value}</p>
+            <div key={m.label} className="rounded-xl px-2 py-2.5 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
+              <p className="text-sm font-bold font-mono" style={{ color: m.color }}>{m.value}</p>
             </div>
           ))}
         </div>
 
         {/* Leg summary */}
-        <div className="space-y-1 mb-3 font-mono text-[11px]">
+        <div className="space-y-2 mb-4 font-mono text-xs">
           {s.legs.map((leg, i) => {
             const strike = (leg as any).strike ?? leg.contract?.details?.strike_price ?? 0
             const type   = ((leg as any).type ?? leg.contract?.details?.contract_type ?? '').toUpperCase()
             const expiry = ((leg as any).expiry ?? leg.contract?.details?.expiration_date ?? '').slice(5)
             return (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5rem 5rem 3.5rem 2rem 1fr', alignItems: 'center', gap: '0.375rem' }}>
-                <span className={`inline-flex items-center justify-center rounded text-[9px] font-bold py-0.5 ${leg.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '3rem 5.5rem 3.5rem 2.5rem 1fr', alignItems: 'center', gap: '0.5rem' }}>
+                <span className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold py-1 ${leg.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
                   {leg.action}
                 </span>
                 <span style={{ color: 'var(--text-sub)' }}>${strike} {type}</span>
@@ -195,23 +195,23 @@ function StrategyCard({ s, spot, onTrade }: {
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
             <button onClick={() => onTrade(s)}
-              className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+              className="text-xs font-semibold px-4 py-2 rounded-xl"
               style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
               Trade
             </button>
             <button onClick={handleRationaleToggle}
-              className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-colors"
               style={rationaleOpen
                 ? { color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }
                 : { color: '#a78bfa', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }
               }>
-              <Sparkles className="w-3 h-3" />
+              <Sparkles className="w-3.5 h-3.5" />
               AI
             </button>
             <button onClick={() => setExpanded(e => !e)}
-              className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors"
-              style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.1)' }}>
-              {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-colors"
+              style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
+              {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               Payoff
             </button>
           </div>
@@ -395,50 +395,27 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
       {/* Group header — always visible */}
-      <button className="w-full text-left px-4 pt-3 pb-2" onClick={() => setOpen(o => !o)}
+      <button className="w-full text-left px-4 pt-4 pb-3" onClick={() => setOpen(o => !o)}
         style={{ background: 'rgba(99,102,241,0.04)' }}>
 
-        {/* Row 1: ticker identity + metrics + sparkline + play count */}
-        <div className="flex items-start justify-between gap-2">
-          {/* Left: ticker name block */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-sm font-bold" style={{ color: 'var(--text)' }}
-                onClick={e => { e.stopPropagation(); onSelectTicker(ticker) }}>
-                {ticker}
+        {/* Row 1: ticker + star + actions */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold tracking-tight" style={{ color: 'var(--text)' }}
+              onClick={e => { e.stopPropagation(); onSelectTicker(ticker) }}>
+              {ticker}
+            </span>
+            <span onClick={e => { e.stopPropagation(); onToggleWatch(ticker, watched) }}>
+              <Star className="w-4 h-4" fill={watched ? '#f59e0b' : 'none'}
+                style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
+            </span>
+            {spot > 0 && (
+              <span className="text-sm font-mono font-semibold" style={{ color: 'var(--text-sub)' }}>
+                ${spot.toFixed(2)}
               </span>
-              <span onClick={e => { e.stopPropagation(); onToggleWatch(ticker, watched) }}>
-                <Star className="w-3.5 h-3.5" fill={watched ? '#f59e0b' : 'none'}
-                  style={{ color: watched ? '#f59e0b' : 'var(--text-muted)' }} />
-              </span>
-              {spot > 0 && (
-                <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }}>
-                  ${spot.toFixed(2)}
-                </span>
-              )}
-            </div>
-            {enrichment?.companyName && (
-              <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
-                {enrichment.companyName}
-              </p>
             )}
           </div>
-
-          {/* Centre: metric cards + sparkline */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {ivMetrics.map(m => (
-              <div key={m.label} className="rounded-lg px-2 py-1 text-center"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <p className="text-[8px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
-                <p className="text-[11px] font-bold font-mono leading-tight" style={{ color: m.color }}>{m.value}</p>
-              </div>
-            ))}
-            {sparkline.length >= 2 && <Sparkline closes={sparkline} width={72} height={32} />}
-          </div>
-
-          {/* Right: bell + play count + chevron */}
-          <div className="flex items-center gap-1.5 flex-shrink-0 ml-1">
+          <div className="flex items-center gap-2">
             {user && (
               <button
                 onClick={e => { e.stopPropagation(); setAlertSheetOpen(true) }}
@@ -447,7 +424,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
                   ? { background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }
                   : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
                 title="Set price alert">
-                <Bell className="w-3.5 h-3.5" style={{ color: alertCount > 0 ? '#a5b4fc' : '#94a3b8' }} />
+                <Bell className="w-4 h-4" style={{ color: alertCount > 0 ? '#a5b4fc' : '#94a3b8' }} />
                 {alertCount > 0 && (
                   <span className="absolute -top-1 -right-1 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center"
                     style={{ background: '#6366f1', color: '#fff' }}>
@@ -456,48 +433,72 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
                 )}
               </button>
             )}
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
               style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
               {strategies.length} {strategies.length === 1 ? 'play' : 'plays'}
             </span>
-            {open ? <ChevronUp className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-                  : <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />}
+            {open
+              ? <ChevronUp className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+              : <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />}
           </div>
         </div>
 
-        {/* Row 2: event badges */}
+        {/* Row 2: company name */}
+        {enrichment?.companyName && (
+          <p className="text-xs mb-2.5 truncate" style={{ color: 'var(--text-muted)' }}>
+            {enrichment.companyName}
+          </p>
+        )}
+
+        {/* Row 3: metric cards + sparkline */}
+        <div className="flex items-center gap-2 mb-2.5">
+          {ivMetrics.map(m => (
+            <div key={m.label} className="flex-1 rounded-xl px-3 py-2 text-center"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[9px] uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
+              <p className="text-sm font-bold font-mono" style={{ color: m.color }}>{m.value}</p>
+            </div>
+          ))}
+          {sparkline.length >= 2 && (
+            <div className="flex-shrink-0">
+              <Sparkline closes={sparkline} width={80} height={40} />
+            </div>
+          )}
+        </div>
+
+        {/* Row 4: event badges */}
         {(earningsInWindow || divInWindow) && (
-          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+          <div className="flex items-center gap-2 mb-2.5 flex-wrap">
             {earningsInWindow && (
-              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+              <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg"
                 style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
-                <Calendar className="w-2.5 h-2.5" />
+                <Calendar className="w-3 h-3" />
                 Earnings {earningsDays === 0 ? 'today' : `in ${earningsDays}d`}
               </span>
             )}
             {divInWindow && (
-              <span className="flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+              <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg"
                 style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-                <DollarSign className="w-2.5 h-2.5" />
+                <DollarSign className="w-3 h-3" />
                 Ex-div {divDays === 0 ? 'today' : `in ${divDays}d`}
               </span>
             )}
           </div>
         )}
 
-        {/* Row 3: top news headlines */}
+        {/* Row 5: news headlines */}
         {news.length > 0 && (
-          <div className="mt-2 space-y-1">
+          <div className="space-y-1.5">
             {news.slice(0, 2).map(n => (
               <a key={n.id} href={n.article_url} target="_blank" rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="flex items-start gap-1.5 group">
-                <span className="text-[9px] mt-0.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>▸</span>
-                <p className="text-[10px] leading-snug group-hover:underline truncate"
-                  style={{ color: 'var(--text-sub)' }}>
+                className="flex items-start gap-2 group">
+                <span className="text-[10px] mt-0.5 flex-shrink-0" style={{ color: 'var(--accent)' }}>▸</span>
+                <p className="text-[11px] leading-snug group-hover:underline flex-1 min-w-0"
+                  style={{ color: 'var(--text-sub)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {n.title}
                 </p>
-                <span className="text-[9px] flex-shrink-0 ml-auto pl-1" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
                   {timeAgo(n.published_utc)}
                 </span>
               </a>
