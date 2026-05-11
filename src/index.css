@@ -71,36 +71,36 @@
   --grad-end:     #0D0D22;
 
   /* ── Card system — dark 3D ─────── */
-  --glass-card-bg:      #131326;
-  --glass-inner-bg:     #0E0E20;
-  --metric-bg:          #0A0A1C;
-  --metric-border:      rgba(255,255,255,0.07);
+  --glass-card-bg:      #0E1022;
+  --glass-inner-bg:     #090B1C;
+  --metric-bg:          #060814;
+  --metric-border:      rgba(255,255,255,0.06);
   --inner-border:       rgba(255,255,255,0.05);
   --inner-border-acc:   rgba(255,255,255,0.08);
-  --news-bg:            #0A0A1C;
+  --news-bg:            #07091A;
   --news-border:        rgba(255,255,255,0.05);
-  --card-end:           #0D0D22;
-  /* 3D: bright top rim + deep bottom shadow + ambient */
-  --card-shadow:        0 1px 0 rgba(255,255,255,0.07) inset,
+  --card-end:           #090B1E;
+  /* 3D: bright top rim + layered depth shadows */
+  --card-shadow:        0 1px 0 rgba(255,255,255,0.08) inset,
+                        0 -1px 0 rgba(0,0,0,0.6) inset,
+                        0 1px 3px rgba(0,0,0,0.5),
+                        0 6px 20px rgba(0,0,0,0.6),
+                        0 18px 44px rgba(0,0,0,0.4);
+  --card-shadow-glow:   0 1px 0 rgba(255,255,255,0.07) inset,
                         0 -1px 0 rgba(0,0,0,0.5) inset,
-                        0 2px 4px rgba(0,0,0,0.4),
-                        0 8px 24px rgba(0,0,0,0.55),
-                        0 20px 48px rgba(0,0,0,0.35);
-  --card-shadow-glow:   0 1px 0 rgba(255,255,255,0.06) inset,
-                        0 -1px 0 rgba(0,0,0,0.4) inset,
-                        0 4px 16px rgba(0,0,0,0.45),
-                        0 12px 32px rgba(0,0,0,0.4);
+                        0 2px 8px rgba(0,0,0,0.5),
+                        0 10px 28px rgba(0,0,0,0.45);
   --btn-inactive-bg:    rgba(255,255,255,0.05);
-  --btn-inactive-border:rgba(255,255,255,0.09);
+  --btn-inactive-border:rgba(255,255,255,0.08);
   --btn-inactive-text:  #4A5568;
-  --strategy-card-bg:   #0D0D22;
-  --payoff-tooltip-bg:  #0d0d20;
-  --payoff-tooltip-border:#1e1e3f;
+  --strategy-card-bg:   #090B1E;
+  --payoff-tooltip-bg:  #0E1022;
+  --payoff-tooltip-border:#1a1d38;
   --sell-leg-bg:        rgba(127,29,29,0.5);
   --sell-leg-text:      #fca5a5;
   --buy-leg-bg:         rgba(6,78,59,0.5);
   --buy-leg-text:       #6ee7b7;
-  --score-ring-track:   rgba(180,185,200,0.2);
+  --score-ring-track:   rgba(180,185,200,0.18);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */
@@ -193,16 +193,19 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   --card-rim:       rgba(255,255,255,1);
   --card-rim-inner: rgba(255,255,255,0.8);
 }
-/* Dark mode rim + subtle inner glow */
+/* Dark mode rim */
 .dark {
-  --card-rim:       rgba(255,255,255,0.08);
+  --card-rim:       rgba(255,255,255,0.09);
   --card-rim-inner: rgba(255,255,255,0.05);
 }
-.dark .glass-card::before {
+/* Dark mode: top-left diagonal shimmer on all premium cards */
+.dark .glass-card::before,
+.dark .p-card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  background: linear-gradient(150deg, rgba(255,255,255,0.05) 0%, transparent 45%);
   pointer-events: none;
+  z-index: 0;
 }
