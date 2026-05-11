@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { Send, BrainCircuit, RefreshCw, Trash2, History, X } from 'lucide-react'
+import { Send, BrainCircuit, RefreshCw, Trash2, History, X, Share2 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import type { StrategyScreenResult } from '../hooks/useStrategyScreener'
 import { useAdvisorChats } from '../hooks/useAdvisorChats'
@@ -151,6 +151,19 @@ export function AdvisorView({ strategies, marketMetrics, sectorData, user }: Pro
 
   const userId = user?.id ?? null
   const { chats, remove: removeChat, save: saveChat, update: updateChat } = useAdvisorChats(userId)
+
+  function shareChat(chat: AdvisorChat) {
+    const lines = chat.messages.map(m =>
+      `${m.role === 'user' ? '🧑 You' : '🤖 Marcus Chen'}:\n${m.content}`
+    ).join('\n\n---\n\n')
+    const text = `${chat.title}\n\n${lines}\n\n— Shared from VChain AI Advisor`
+
+    if (navigator.share) {
+      navigator.share({ title: chat.title, text }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(text).then(() => alert('Chat copied to clipboard!'))
+    }
+  }
 
   // Stable context ref — never re-creates sendMessage
   const contextRef = useRef({ marketMetrics, sectorData, strategies })
@@ -364,12 +377,22 @@ export function AdvisorView({ strategies, marketMetrics, sectorData, user }: Pro
                       {new Date(chat.updated_at).toLocaleDateString()} · {chat.messages.length} messages
                     </p>
                   </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); removeChat(chat.id); if (activeChatId === chat.id) { setMessages([]); setActiveChatId(null) } }}
-                    className="ml-3 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(239,68,68,0.1)' }}>
-                    <Trash2 className="w-3 h-3 text-red-400" />
-                  </button>
+                  <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    <button
+                      onClick={e => { e.stopPropagation(); shareChat(chat) }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ background: 'rgba(99,102,241,0.1)' }}
+                      title="Share chat">
+                      <Share2 className="w-3 h-3" style={{ color: 'var(--accent)' }} />
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); removeChat(chat.id); if (activeChatId === chat.id) { setMessages([]); setActiveChatId(null) } }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ background: 'rgba(239,68,68,0.1)' }}
+                      title="Delete chat">
+                      <Trash2 className="w-3 h-3 text-red-400" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
