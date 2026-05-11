@@ -38,11 +38,11 @@ function daysUntil(dateStr: string): number {
 const THESIS_TABS: (Thesis | 'All')[] = ['All', 'Sell Premium', 'Bullish', 'Bearish', 'Buy Vol', 'Neutral']
 
 const thesisColor = (t: Thesis | string) => {
-  if (t === 'Sell Premium') return { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.4)', text: '#a5b4fc' }
-  if (t === 'Bullish')      return { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', text: '#6ee7b7' }
-  if (t === 'Bearish')      return { bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.35)',  text: '#fca5a5' }
-  if (t === 'Buy Vol')      return { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)', text: '#fcd34d' }
-  return { bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.2)', text: '#c4b5fd' }
+  if (t === 'Sell Premium') return { bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.35)', text: '#6366f1' }
+  if (t === 'Bullish')      return { bg: 'rgba(16,185,129,0.1)',   border: 'rgba(16,185,129,0.3)',  text: '#059669' }
+  if (t === 'Bearish')      return { bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.3)',   text: '#dc2626' }
+  if (t === 'Buy Vol')      return { bg: 'rgba(245,158,11,0.1)',   border: 'rgba(245,158,11,0.3)',  text: '#d97706' }
+  return { bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.2)', text: '#7c3aed' }
 }
 
 const scoreColor = (s: number) =>
@@ -54,7 +54,7 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative w-12 h-12 flex-shrink-0">
       <svg width="48" height="48" viewBox="0 0 48 48" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(180,185,200,0.25)" strokeWidth="3" />
+        <circle cx="24" cy="24" r={r} fill="none" stroke="var(--score-ring-track)" strokeWidth="3" />
         <circle cx="24" cy="24" r={r} fill="none" stroke={scoreColor(score)} strokeWidth="3"
           strokeDasharray={`${filled} ${c}`} strokeLinecap="round" />
       </svg>
@@ -152,8 +152,8 @@ function StrategyCard({ s, spot, onTrade }: {
       className="glass-card-inner overflow-hidden"
       style={{
         border: `1px solid ${tc.border}`,
-        boxShadow: `0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`,
-        background: `linear-gradient(145deg, ${tc.bg} 0%, rgba(8,8,20,0.95) 100%)`,
+        boxShadow: `var(--card-shadow-glow)`,
+        background: `linear-gradient(145deg, ${tc.bg} 0%, var(--card-end) 100%)`,
       }}>
 
       {/* Main row */}
@@ -182,7 +182,7 @@ function StrategyCard({ s, spot, onTrade }: {
             { label: 'Max Profit', value: s.maxProfit === Infinity ? '∞' : `$${(s.maxProfit * 100).toFixed(0)}`, color: '#10b981' },
             { label: 'Max Loss',   value: s.maxLoss   === Infinity ? '∞' : `-$${(s.maxLoss * 100).toFixed(0)}`,  color: '#ef4444' },
           ].map(m => (
-            <div key={m.label} className="rounded-xl px-2 py-2.5 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div key={m.label} className="rounded-xl px-2 py-2.5 text-center" style={{ background: 'var(--metric-bg)', border: '1px solid var(--metric-border)' }}>
               <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
               <p className="text-sm font-bold font-mono" style={{ color: m.color }}>{m.value}</p>
             </div>
@@ -197,7 +197,10 @@ function StrategyCard({ s, spot, onTrade }: {
             const expiry = ((leg as any).expiry ?? leg.contract?.details?.expiration_date ?? '').slice(5)
             return (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '3rem 5.5rem 3.5rem 2.5rem 1fr', alignItems: 'center', gap: '0.5rem' }}>
-                <span className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold py-1 ${leg.action === 'SELL' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
+                <span className="inline-flex items-center justify-center rounded-md text-[10px] font-bold py-1"
+                style={leg.action === 'SELL'
+                  ? { background: 'var(--sell-leg-bg)', color: 'var(--sell-leg-text)' }
+                  : { background: 'var(--buy-leg-bg)',  color: 'var(--buy-leg-text)' }}>
                   {leg.action}
                 </span>
                 <span style={{ color: 'var(--text-sub)' }}>${strike} {type}</span>
@@ -214,21 +217,21 @@ function StrategyCard({ s, spot, onTrade }: {
           <div className="flex items-center gap-2">
             <button onClick={() => onTrade(s)}
               className="text-xs font-semibold px-4 py-2 rounded-xl"
-              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.28)', color: '#059669' }}>
               Trade
             </button>
             <button onClick={handleRationaleToggle}
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-colors"
               style={rationaleOpen
-                ? { color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }
-                : { color: '#a78bfa', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }
+                ? { color: '#d97706', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.28)' }
+                : { color: '#7c3aed', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }
               }>
               <Sparkles className="w-3.5 h-3.5" />
               AI
             </button>
             <button onClick={() => setExpanded(e => !e)}
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-colors"
-              style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
+              style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
               {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               Payoff
             </button>
@@ -246,17 +249,17 @@ function StrategyCard({ s, spot, onTrade }: {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden border-t"
-            style={{ borderColor: 'rgba(139,92,246,0.25)' }}>
-            <div className="px-4 py-3" style={{ background: 'rgba(139,92,246,0.05)' }}>
+            style={{ borderColor: 'rgba(139,92,246,0.2)' }}>
+            <div className="px-4 py-3" style={{ background: 'rgba(139,92,246,0.04)' }}>
               <div className="flex items-center gap-1.5 mb-2">
-                <Sparkles className="w-3 h-3" style={{ color: '#a78bfa' }} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#a78bfa' }}>
+                <Sparkles className="w-3 h-3" style={{ color: '#7c3aed' }} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>
                   AI Rationale
                 </span>
               </div>
               {rationaleLoading && (
                 <div className="flex items-center gap-2 py-1">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: '#a78bfa' }} />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: '#7c3aed' }} />
                   <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Analysing signals…</span>
                 </div>
               )}
@@ -314,7 +317,7 @@ function StrategyCard({ s, spot, onTrade }: {
                       tickFormatter={v => `$${v}`} interval={4} />
                     <YAxis tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
                       tickFormatter={v => v >= 0 ? `+$${v}` : `-$${Math.abs(v)}`} width={46} />
-                    <Tooltip contentStyle={{ background: '#0d0d20', border: '1px solid #1e1e3f', borderRadius: 8, fontSize: 10 }}
+                    <Tooltip contentStyle={{ background: 'var(--payoff-tooltip-bg)', border: '1px solid var(--payoff-tooltip-border)', borderRadius: 8, fontSize: 10, color: 'var(--text)' }}
                       formatter={(v) => { const n = Number(v); return [n >= 0 ? `+$${n}` : `-$${Math.abs(n)}`, 'P&L'] }}
                       labelFormatter={v => `Spot $${v}`} />
                     <ReferenceArea x1={ivLow} x2={ivHigh} fill="rgba(99,102,241,0.18)" stroke="rgba(99,102,241,0.45)" strokeDasharray="4 2" />
@@ -429,11 +432,11 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
       className="glass-card overflow-hidden"
       style={{
         border: `1px solid ${ac.border}`,
-        boxShadow: `0 0 28px ${ac.glow}, 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)`,
+        boxShadow: `0 0 20px ${ac.glow}, var(--card-shadow)`,
       }}>
       {/* Group header — always visible */}
       <button className="w-full text-left px-4 pt-4 pb-3" onClick={() => setOpen(o => !o)}
-        style={{ background: `linear-gradient(135deg, ${ac.soft} 0%, transparent 60%)` }}>
+        style={{ background: `linear-gradient(135deg, ${ac.soft} 0%, transparent 70%)` }}>
 
         {/* Row 1: ticker + star + actions */}
         <div className="flex items-center justify-between mb-2">
@@ -458,8 +461,8 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
                 onClick={e => { e.stopPropagation(); setAlertSheetOpen(true) }}
                 className="relative p-1.5 rounded-lg"
                 style={alertCount > 0
-                  ? { background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }
-                  : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  ? { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)' }
+                  : { background: 'var(--btn-inactive-bg)', border: '1px solid var(--btn-inactive-border)' }}
                 title="Set price alert">
                 <Bell className="w-4 h-4" style={{ color: alertCount > 0 ? '#a5b4fc' : '#94a3b8' }} />
                 {alertCount > 0 && (
@@ -491,7 +494,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
         <div className="flex items-center gap-2 mb-3">
           {ivMetrics.map(m => (
             <div key={m.label} className="metric-glass flex-1 px-3 py-2.5 text-center"
-              style={{ border: `1px solid rgba(255,255,255,0.07)`, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)' }}>
+              style={{ border: `1px solid var(--metric-border)` }}>
               <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
               <p className="text-sm font-bold font-mono leading-none mb-1" style={{ color: m.color }}>{m.value}</p>
               <p className="text-[8px]" style={{ color: m.color, opacity: 0.7 }}>{m.sub}</p>
@@ -499,7 +502,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
           ))}
           {sparkline.length >= 2 && (
             <div className="flex-shrink-0 rounded-xl overflow-hidden p-1"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              style={{ background: 'var(--metric-bg)', border: '1px solid var(--metric-border)' }}>
               <Sparkline closes={sparkline} width={76} height={44} accentColor={ac.primary} />
             </div>
           )}
@@ -528,12 +531,12 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
         {/* Row 5: news headlines */}
         {news.length > 0 && (
           <div className="space-y-0 rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+            style={{ border: '1px solid var(--news-border)', background: 'var(--news-bg)' }}>
             {news.slice(0, 2).map((n, i) => (
               <a key={n.id} href={n.article_url} target="_blank" rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
                 className="flex items-start gap-2.5 px-3 py-2 group"
-                style={i > 0 ? { borderTop: '1px solid rgba(255,255,255,0.05)' } : {}}>
+                style={i > 0 ? { borderTop: '1px solid var(--news-border)' } : {}}>
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                   style={{ background: ac.primary, boxShadow: `0 0 6px ${ac.primary}` }} />
                 <p className="text-[11px] leading-snug group-hover:underline flex-1 min-w-0"
@@ -640,17 +643,17 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
             <button onClick={() => setWatchlistOnly(w => !w)}
               className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
               style={watchlistOnly
-                ? { background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', color: '#fcd34d' }
-                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)' }}>
-              <Star className="w-3 h-3" fill={watchlistOnly ? '#fcd34d' : 'none'}
-                style={{ color: watchlistOnly ? '#fcd34d' : 'var(--text-muted)' }} />
+                ? { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#d97706' }
+                : { background: 'var(--btn-inactive-bg)', border: '1px solid var(--btn-inactive-border)', color: 'var(--btn-inactive-text)' }}>
+              <Star className="w-3 h-3" fill={watchlistOnly ? '#d97706' : 'none'}
+                style={{ color: watchlistOnly ? '#d97706' : 'var(--btn-inactive-text)' }} />
               {watchlistOnly ? `Watchlist (${watchlist.length})` : 'Watchlist'}
             </button>
           )}
           {!isLoading && !rescan.isPending && (
             <button onClick={() => rescan.mutate()}
               className="text-[11px] px-2.5 py-1.5 rounded-xl font-medium"
-              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--accent)' }}>
+              style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--accent)' }}>
               Rescan
             </button>
           )}
@@ -667,7 +670,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
         </button>
         {showScoring && (
           <div className="mt-2 rounded-2xl p-3 space-y-2"
-            style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)' }}>
+            style={{ background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.12)' }}>
             {SCORING_NOTES.map(n => (
               <div key={n.label} className="flex gap-2 text-[11px]">
                 <span className="font-bold flex-shrink-0 w-14" style={{ color: 'var(--accent)' }}>{n.label}</span>
@@ -688,7 +691,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
               className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full font-semibold transition-all"
               style={active
                 ? { background: tc.bg, border: `1px solid ${tc.border}`, color: tc.text }
-                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)' }
+                : { background: 'var(--btn-inactive-bg)', border: '1px solid var(--btn-inactive-border)', color: 'var(--btn-inactive-text)' }
               }>
               {t}
             </button>
@@ -703,8 +706,8 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
           <button key={s} onClick={() => setMinScore(s)}
             className="text-[11px] px-2.5 py-1 rounded-lg font-semibold transition-all"
             style={minScore === s
-              ? { background: 'var(--accent)', color: '#fff' }
-              : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.08)' }
+              ? { background: 'var(--accent)', color: '#fff', boxShadow: '0 2px 8px var(--accent-glow)' }
+              : { background: 'var(--btn-inactive-bg)', color: 'var(--btn-inactive-text)', border: '1px solid var(--btn-inactive-border)' }
             }>
             {s}+
           </button>
@@ -718,7 +721,7 @@ export function StrategyScreener({ spotPrices, onSelectTicker, onTrade, user }: 
       {isLoading && (
         <div className="space-y-3">
           {[1,2,3].map(i => (
-            <div key={i} className="h-40 rounded-2xl animate-pulse" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.12)' }} />
+            <div key={i} className="h-40 rounded-2xl animate-pulse" style={{ background: 'var(--metric-bg)', border: '1px solid var(--metric-border)' }} />
           ))}
           <p className="text-center text-xs py-2" style={{ color: 'var(--text-muted)' }}>
             Analysing options chains across {Object.keys(spotPrices).length} stocks…

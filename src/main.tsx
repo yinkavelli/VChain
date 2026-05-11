@@ -1,6 +1,4 @@
 import { StrictMode } from 'react'
-// Always dark mode
-document.documentElement.classList.add('dark')
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'

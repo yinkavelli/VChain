@@ -46,8 +46,8 @@ export function StatCard({ label, value, sub, icon, color = 'indigo', delay = 0,
         className={`glass-card p-4 ${tooltip ? 'cursor-pointer' : ''}`}
         style={{
           border: `1px solid ${c.border}`,
-          boxShadow: `0 0 24px ${c.glow}, 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)`,
-          background: `linear-gradient(145deg, ${c.soft} 0%, rgba(8,8,20,0.96) 100%)`,
+          boxShadow: `0 0 20px ${c.glow}, var(--card-shadow)`,
+          background: `linear-gradient(145deg, ${c.soft} 0%, var(--card-end) 100%)`,
         }}>
         <div className="flex items-start justify-between mb-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"

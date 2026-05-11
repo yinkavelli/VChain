@@ -6,20 +6,45 @@
 
 /* ── Theme variables ────────────────────────────────────────────────── */
 :root {
-  /* Light mode */
-  --bg:           #f4f4f9;
-  --bg-card:      #ffffff;
-  --bg-card-alt:  #efeff7;
-  --bg-header:    rgba(244,244,249,0.96);
-  --bg-nav:       rgba(244,244,249,0.98);
-  --text:         #0a0a1a;
-  --text-sub:     #3a3a60;
-  --text-muted:   #8080aa;
-  --border:       rgba(99,102,241,0.15);
-  --border-acc:   rgba(99,102,241,0.25);
+  /* Light mode — premium off-white fintech */
+  --bg:           #F4F5F7;
+  --bg-card:      #FFFFFF;
+  --bg-card-alt:  #F8F9FB;
+  --bg-header:    rgba(244,245,247,0.96);
+  --bg-nav:       rgba(244,245,247,0.98);
+  --text:         #111827;
+  --text-sub:     #374151;
+  --text-muted:   #9CA3AF;
+  --border:       rgba(99,102,241,0.1);
+  --border-acc:   rgba(99,102,241,0.2);
   --accent:       #6366f1;
-  --accent-glow:  rgba(99,102,241,0.2);
-  --grad-end:     rgba(255,255,255,0.92);  /* light endpoint for gradient cards */
+  --accent-glow:  rgba(99,102,241,0.12);
+  --grad-end:     rgba(255,255,255,0.92);
+
+  /* ── Glass / card system — light ─────── */
+  --glass-card-bg:      rgba(255,255,255,0.88);
+  --glass-card-shine:   rgba(255,255,255,0.95);
+  --glass-inner-bg:     rgba(255,255,255,0.72);
+  --metric-bg:          rgba(248,249,251,0.95);
+  --metric-border:      rgba(0,0,0,0.07);
+  --inner-border:       rgba(0,0,0,0.055);
+  --inner-border-acc:   rgba(0,0,0,0.09);
+  --news-bg:            rgba(248,249,251,0.85);
+  --news-border:        rgba(0,0,0,0.055);
+  --card-end:           rgba(255,255,255,0.93);
+  --card-shadow:        0 2px 20px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,1);
+  --card-shadow-glow:   0 2px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  --btn-inactive-bg:    rgba(0,0,0,0.04);
+  --btn-inactive-border:rgba(0,0,0,0.1);
+  --btn-inactive-text:  #6B7280;
+  --strategy-card-bg:   rgba(255,255,255,0.75);
+  --payoff-tooltip-bg:  #FFFFFF;
+  --payoff-tooltip-border:#E5E7EB;
+  --sell-leg-bg:        rgba(239,68,68,0.08);
+  --sell-leg-text:      #DC2626;
+  --buy-leg-bg:         rgba(16,185,129,0.08);
+  --buy-leg-text:       #059669;
+  --score-ring-track:   rgba(0,0,0,0.1);
 }
 
 .dark {
@@ -37,6 +62,31 @@
   --accent:       #6366f1;
   --accent-glow:  rgba(99,102,241,0.35);
   --grad-end:     rgba(10,10,28,0.98);
+
+  /* ── Glass / card system — dark ─────── */
+  --glass-card-bg:      rgba(255,255,255,0.045);
+  --glass-card-shine:   rgba(255,255,255,0.07);
+  --glass-inner-bg:     rgba(255,255,255,0.035);
+  --metric-bg:          rgba(255,255,255,0.05);
+  --metric-border:      rgba(255,255,255,0.07);
+  --inner-border:       rgba(255,255,255,0.05);
+  --inner-border-acc:   rgba(255,255,255,0.08);
+  --news-bg:            rgba(255,255,255,0.02);
+  --news-border:        rgba(255,255,255,0.05);
+  --card-end:           rgba(8,8,20,0.96);
+  --card-shadow:        0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  --card-shadow-glow:   0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  --btn-inactive-bg:    rgba(255,255,255,0.04);
+  --btn-inactive-border:rgba(255,255,255,0.08);
+  --btn-inactive-text:  #4a5568;
+  --strategy-card-bg:   rgba(8,8,20,0.95);
+  --payoff-tooltip-bg:  #0d0d20;
+  --payoff-tooltip-border:#1e1e3f;
+  --sell-leg-bg:        rgba(127,29,29,0.5);
+  --sell-leg-text:      #fca5a5;
+  --buy-leg-bg:         rgba(6,78,59,0.5);
+  --buy-leg-text:       #6ee7b7;
+  --score-ring-track:   rgba(180,185,200,0.25);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */
@@ -75,9 +125,9 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
 
 /* ── Glass card system ──────────────────────────────────────────────── */
 .glass-card {
-  background: linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--glass-card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
   position: relative;
 }
@@ -86,17 +136,18 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+  background: linear-gradient(145deg, var(--glass-card-shine) 0%, transparent 55%);
+  opacity: 0.5;
   pointer-events: none;
 }
 .glass-card-inner {
-  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  background: var(--glass-inner-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-radius: 20px;
 }
 .metric-glass {
-  background: linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+  background: var(--metric-bg);
   border-radius: 14px;
   position: relative;
   overflow: hidden;
@@ -106,5 +157,6 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  background: linear-gradient(90deg, transparent, var(--glass-card-shine), transparent);
+  opacity: 0.6;
 }
