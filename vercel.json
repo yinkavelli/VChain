@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/alerts-check",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 14 * * 1-5"
     }
   ]
 }
