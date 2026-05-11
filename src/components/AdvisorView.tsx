@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { Send, BrainCircuit, RefreshCw } from 'lucide-react'
+import { Send, BrainCircuit, RefreshCw, Trash2, History, X } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
 import type { StrategyScreenResult } from '../hooks/useStrategyScreener'
+import { useAdvisorChats } from '../hooks/useAdvisorChats'
+import type { AdvisorChat } from '../hooks/useAdvisorChats'
 
 interface Message {
   id: string
@@ -21,6 +24,7 @@ interface Props {
   strategies: StrategyScreenResult[]
   marketMetrics: MarketMetrics
   sectorData: { sector: string; avg: number }[]
+  user?: User | null
 }
 
 const SUGGESTIONS = [
@@ -132,16 +136,21 @@ function renderInline(text: string): React.ReactNode[] {
   })
 }
 
-export function AdvisorView({ strategies, marketMetrics, sectorData }: Props) {
+export function AdvisorView({ strategies, marketMetrics, sectorData, user }: Props) {
   const [messages, setMessages]             = useState<Message[]>([])
-  const [streamingText, setStreamingText]   = useState('')   // live text — separate from history
+  const [streamingText, setStreamingText]   = useState('')
   const [isStreaming, setIsStreaming]        = useState(false)
   const [input, setInput]                   = useState('')
   const [loading, setLoading]               = useState(false)
+  const [activeChatId, setActiveChatId]     = useState<string | null>(null)
+  const [showHistory, setShowHistory]       = useState(false)
   const bottomRef   = useRef<HTMLDivElement>(null)
   const inputRef    = useRef<HTMLTextAreaElement>(null)
   const accRef      = useRef('')
   const rafRef      = useRef<number | undefined>(undefined)
+
+  const userId = user?.id ?? null
+  const { chats, remove: removeChat, save: saveChat, update: updateChat } = useAdvisorChats(userId)
 
   // Stable context ref — never re-creates sendMessage
   const contextRef = useRef({ marketMetrics, sectorData, strategies })
@@ -245,7 +254,18 @@ export function AdvisorView({ strategies, marketMetrics, sectorData }: Props) {
       // Final flush — move into message history
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       const final = accRef.current
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: final }])
+      const asstMsg: Message = { id: crypto.randomUUID(), role: 'assistant', content: final }
+      setMessages(prev => {
+        const updated = [...prev, asstMsg]
+        // Persist to Supabase
+        const storable = updated.map(m => ({ role: m.role, content: m.content }))
+        if (activeChatId) {
+          updateChat(activeChatId, storable)
+        } else {
+          saveChat(storable).then(id => { if (id) setActiveChatId(id) })
+        }
+        return updated
+      })
       setStreamingText('')
     } catch {
       setMessages(prev => [...prev, {
@@ -257,7 +277,7 @@ export function AdvisorView({ strategies, marketMetrics, sectorData }: Props) {
       setLoading(false)
       setIsStreaming(false)
     }
-  }, [messages, loading, context])
+  }, [messages, loading, context, activeChatId, saveChat, updateChat])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -292,14 +312,70 @@ export function AdvisorView({ strategies, marketMetrics, sectorData }: Props) {
             </p>
           </div>
         </div>
-        {messages.length > 0 && (
-          <button onClick={() => { setMessages([]); setStreamingText('') }}
-            className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--metric-bg)', border: '1px solid var(--inner-border)' }}>
-            <RefreshCw className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {chats.length > 0 && (
+            <button onClick={() => setShowHistory(h => !h)}
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: showHistory ? 'rgba(99,102,241,0.15)' : 'var(--metric-bg)', border: '0.5px solid var(--inner-border)' }}>
+              <History className="w-3.5 h-3.5" style={{ color: showHistory ? 'var(--accent)' : 'var(--text-muted)' }} />
+            </button>
+          )}
+          {messages.length > 0 && (
+            <button onClick={() => { setMessages([]); setStreamingText(''); setActiveChatId(null) }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'var(--metric-bg)', border: '0.5px solid var(--inner-border)' }}>
+              <RefreshCw className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Chat history panel */}
+      {showHistory && (
+        <div className="mb-4 rounded-2xl overflow-hidden"
+          style={{ background: 'var(--glass-card-bg)', border: '0.5px solid var(--inner-border)' }}>
+          <div className="flex items-center justify-between px-4 py-2.5"
+            style={{ borderBottom: '0.5px solid var(--inner-border)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+              Saved Chats
+            </span>
+            <button onClick={() => setShowHistory(false)}>
+              <X className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+            </button>
+          </div>
+          {chats.length === 0 ? (
+            <p className="px-4 py-3 text-[12px]" style={{ color: 'var(--text-muted)' }}>No saved chats yet.</p>
+          ) : (
+            <div className="max-h-52 overflow-y-auto">
+              {chats.map((chat: AdvisorChat) => (
+                <div key={chat.id}
+                  className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors ${activeChatId === chat.id ? 'bg-indigo-500/10' : ''}`}
+                  style={{ borderBottom: '0.5px solid var(--inner-border)' }}
+                  onClick={() => {
+                    setMessages(chat.messages.map(m => ({ id: crypto.randomUUID(), ...m })))
+                    setActiveChatId(chat.id)
+                    setShowHistory(false)
+                  }}>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-medium truncate" style={{ color: activeChatId === chat.id ? 'var(--accent)' : 'var(--text)' }}>
+                      {chat.title}
+                    </p>
+                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      {new Date(chat.updated_at).toLocaleDateString()} · {chat.messages.length} messages
+                    </p>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); removeChat(chat.id); if (activeChatId === chat.id) { setMessages([]); setActiveChatId(null) } }}
+                    className="ml-3 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(239,68,68,0.1)' }}>
+                    <Trash2 className="w-3 h-3 text-red-400" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Message list */}
       <div className="flex-1 space-y-4 pb-4">

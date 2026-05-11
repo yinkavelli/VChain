@@ -180,6 +180,7 @@ export default function App() {
                 strategies={allStrategies}
                 marketMetrics={advisorMarketMetrics}
                 sectorData={advisorSectorData}
+                user={user}
               />
             </motion.div>
           )}

@@ -170,8 +170,10 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
 
       {/* Sector performance chart */}
       {sectorData.length > 0 && (
-        <div className="p-card p-4">
-          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-sub)' }}>Sector Performance (today)</p>
+        <div className="sector-card p-4">
+          <div className="card-shimmer" />
+          <p className="relative z-10 text-xs font-semibold mb-3" style={{ color: 'var(--text-sub)' }}>Sector Performance (today)</p>
+          <div className="relative z-10">
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={sectorData} margin={{ top: 4, right: 4, left: 0, bottom: 28 }}>
               <XAxis dataKey="sector" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false}
@@ -197,15 +199,16 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </div>
       )}
 
       {/* Top movers */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'Top Gainers', list: gainers, accent: 'rgba(16,185,129,0.2)', textColor: 'text-emerald-500', sign: '+' },
-          { label: 'Top Losers',  list: losers,  accent: 'rgba(239,68,68,0.2)',  textColor: 'text-red-400',    sign: '' },
-        ].map(({ label, list, accent, textColor, sign }) => (
+          { label: 'Top Gainers', list: gainers, cls: 'mover-gain', textColor: 'text-emerald-400', sign: '+' },
+          { label: 'Top Losers',  list: losers,  cls: 'mover-loss', textColor: 'text-red-400',     sign: '' },
+        ].map(({ label, list, cls, textColor, sign }) => (
           <div key={label}>
             <div className="flex items-center justify-between mb-2">
               <p className={`text-xs font-semibold ${textColor}`}>{label}</p>
@@ -213,16 +216,15 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
             </div>
             <div className="space-y-1.5">
               {(list as any[]).map((s, i) => {
-                const ticker  = s.ticker
-                const price   = s.day?.c ?? s.price ?? 0
-                const pct     = s.todaysChangePerc ?? s.changePct ?? 0
+                const ticker = s.ticker
+                const price  = s.day?.c ?? s.price ?? 0
+                const pct    = s.todaysChangePerc ?? s.changePct ?? 0
                 return (
                   <motion.button key={ticker}
                     initial={{ opacity: 0, x: sign === '+' ? -8 : 8 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.04 }}
                     onClick={() => onSelectTicker(ticker)}
-                    className="p-card-sm w-full flex items-center justify-between px-3 py-2"
-                    style={{ borderColor: accent }}>
+                    className={`${cls} w-full flex items-center justify-between px-3 py-2`}>
                     <div className="text-left">
                       <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{ticker}</p>
                       <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(price)}</p>

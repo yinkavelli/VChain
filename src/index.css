@@ -116,10 +116,10 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
 .p-card {
   background: var(--glass-card-bg);
   border-radius: 20px;
-  border-top: 1px solid var(--card-rim);
-  border-left: 1px solid var(--card-rim);
-  border-right: 1px solid var(--inner-border);
-  border-bottom: 1px solid var(--inner-border);
+  border-top: 0.5px solid var(--card-rim);
+  border-left: 0.5px solid var(--card-rim);
+  border-right: 0.5px solid var(--inner-border);
+  border-bottom: 0.5px solid var(--inner-border);
   box-shadow: var(--card-shadow);
   position: relative;
 }
@@ -135,10 +135,10 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
 .p-card-sm {
   background: var(--glass-inner-bg);
   border-radius: 14px;
-  border-top: 1px solid var(--card-rim);
-  border-left: 1px solid var(--card-rim);
-  border-right: 1px solid var(--inner-border);
-  border-bottom: 1px solid var(--inner-border);
+  border-top: 0.5px solid var(--card-rim);
+  border-left: 0.5px solid var(--card-rim);
+  border-right: 0.5px solid var(--inner-border);
+  border-bottom: 0.5px solid var(--inner-border);
   box-shadow: var(--card-shadow-glow);
 }
 .v-card {
@@ -173,10 +173,10 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   background: var(--glass-card-bg);
   border-radius: 24px;
   position: relative;
-  border-top: 1px solid var(--card-rim);
-  border-left: 1px solid var(--card-rim);
-  border-right: 1px solid var(--inner-border);
-  border-bottom: 1px solid var(--inner-border);
+  border-top: 0.5px solid var(--card-rim);
+  border-left: 0.5px solid var(--card-rim);
+  border-right: 0.5px solid var(--inner-border);
+  border-bottom: 0.5px solid var(--inner-border);
   box-shadow: var(--card-shadow);
 }
 .glass-card-inner {
@@ -219,17 +219,63 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
 }
 
 /* ── Stat card color variants (light = subtle tint, dark = deep gradient) ── */
-.stat-indigo  { background: linear-gradient(135deg, rgba(99,102,241,0.13) 0%, rgba(99,102,241,0.04) 100%); border-color: rgba(99,102,241,0.35) !important; }
-.stat-emerald { background: linear-gradient(135deg, rgba(16,185,129,0.13) 0%, rgba(16,185,129,0.04) 100%); border-color: rgba(16,185,129,0.35) !important; }
-.stat-violet  { background: linear-gradient(135deg, rgba(139,92,246,0.13) 0%, rgba(139,92,246,0.04) 100%); border-color: rgba(139,92,246,0.35) !important; }
-.stat-red     { background: linear-gradient(135deg, rgba(239,68,68,0.13)  0%, rgba(239,68,68,0.04)  100%); border-color: rgba(239,68,68,0.35)  !important; }
-.stat-amber   { background: linear-gradient(135deg, rgba(245,158,11,0.13) 0%, rgba(245,158,11,0.04) 100%); border-color: rgba(245,158,11,0.35) !important; }
+.stat-indigo  { background: linear-gradient(135deg, rgba(99,102,241,0.13) 0%, rgba(99,102,241,0.04) 100%); border-color: rgba(99,102,241,0.22) !important; }
+.stat-emerald { background: linear-gradient(135deg, rgba(16,185,129,0.13) 0%, rgba(16,185,129,0.04) 100%); border-color: rgba(16,185,129,0.22) !important; }
+.stat-violet  { background: linear-gradient(135deg, rgba(139,92,246,0.13) 0%, rgba(139,92,246,0.04) 100%); border-color: rgba(139,92,246,0.22) !important; }
+.stat-red     { background: linear-gradient(135deg, rgba(239,68,68,0.13)  0%, rgba(239,68,68,0.04)  100%); border-color: rgba(239,68,68,0.22)  !important; }
+.stat-amber   { background: linear-gradient(135deg, rgba(245,158,11,0.13) 0%, rgba(245,158,11,0.04) 100%); border-color: rgba(245,158,11,0.22) !important; }
 
-.dark .stat-indigo  { background: linear-gradient(135deg, rgba(49,46,129,0.55)   0%, rgba(30,27,75,0.22)   100%); border-color: rgba(99,102,241,0.5)  !important; }
-.dark .stat-emerald { background: linear-gradient(135deg, rgba(6,78,59,0.55)     0%, rgba(2,44,34,0.22)    100%); border-color: rgba(16,185,129,0.5)  !important; }
-.dark .stat-violet  { background: linear-gradient(135deg, rgba(76,29,149,0.55)   0%, rgba(46,16,101,0.22)  100%); border-color: rgba(139,92,246,0.5)  !important; }
-.dark .stat-red     { background: linear-gradient(135deg, rgba(127,29,29,0.55)   0%, rgba(69,10,10,0.22)   100%); border-color: rgba(239,68,68,0.5)   !important; }
-.dark .stat-amber   { background: linear-gradient(135deg, rgba(120,53,15,0.55)   0%, rgba(69,26,3,0.22)    100%); border-color: rgba(245,158,11,0.5)  !important; }
+.dark .stat-indigo  { background: linear-gradient(135deg, rgba(49,46,129,0.55)   0%, rgba(30,27,75,0.22)   100%); border-color: rgba(99,102,241,0.28)  !important; }
+.dark .stat-emerald { background: linear-gradient(135deg, rgba(6,78,59,0.55)     0%, rgba(2,44,34,0.22)    100%); border-color: rgba(16,185,129,0.28)  !important; }
+.dark .stat-violet  { background: linear-gradient(135deg, rgba(76,29,149,0.55)   0%, rgba(46,16,101,0.22)  100%); border-color: rgba(139,92,246,0.28)  !important; }
+.dark .stat-red     { background: linear-gradient(135deg, rgba(127,29,29,0.55)   0%, rgba(69,10,10,0.22)   100%); border-color: rgba(239,68,68,0.28)   !important; }
+.dark .stat-amber   { background: linear-gradient(135deg, rgba(120,53,15,0.55)   0%, rgba(69,26,3,0.22)    100%); border-color: rgba(245,158,11,0.28)  !important; }
+
+/* ── Screener rows — all indigo tint ─────────────────────────────── */
+.screener-row {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%);
+  border: 0.5px solid rgba(99,102,241,0.2);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.dark .screener-row {
+  background: linear-gradient(135deg, rgba(49,46,129,0.38) 0%, rgba(15,12,50,0.18) 100%);
+  border-color: rgba(99,102,241,0.22);
+}
+
+/* ── Mover row items — gain/loss ─────────────────────────────────── */
+.mover-gain {
+  background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%);
+  border: 0.5px solid rgba(16,185,129,0.2);
+  border-radius: 12px;
+}
+.dark .mover-gain {
+  background: linear-gradient(135deg, rgba(6,78,59,0.4) 0%, rgba(2,30,20,0.18) 100%);
+  border-color: rgba(16,185,129,0.22);
+}
+.mover-loss {
+  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 100%);
+  border: 0.5px solid rgba(239,68,68,0.2);
+  border-radius: 12px;
+}
+.dark .mover-loss {
+  background: linear-gradient(135deg, rgba(127,29,29,0.4) 0%, rgba(50,8,8,0.18) 100%);
+  border-color: rgba(239,68,68,0.22);
+}
+
+/* ── Sector chart card ───────────────────────────────────────────── */
+.sector-card {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 100%);
+  border: 0.5px solid rgba(99,102,241,0.2);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.dark .sector-card {
+  background: linear-gradient(135deg, rgba(30,27,75,0.55) 0%, rgba(10,8,30,0.25) 100%);
+  border-color: rgba(99,102,241,0.2);
+}
 
 /* ── Shimmer animation for stat cards ──────────────────────────── */
 @keyframes card-shimmer {

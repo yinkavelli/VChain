@@ -26,10 +26,11 @@ function RowWithIV({ row, onClick }: { row: ScreenerRow; onClick: () => void }) 
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       onClick={onClick}
-      className="p-card w-full flex items-center justify-between px-4 py-3 transition-colors text-left">
-      <div className="flex items-center gap-3 min-w-0">
+      className="screener-row w-full flex items-center justify-between px-4 py-3 text-left">
+      <div className="card-shimmer" />
+      <div className="flex items-center gap-3 min-w-0 relative z-10">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(14,165,233,0.1)' }}>
+          style={{ background: 'rgba(99,102,241,0.12)' }}>
           <span className="text-[11px] font-bold" style={{ color: 'var(--accent)' }}>{row.ticker.slice(0, 4)}</span>
         </div>
         <div className="min-w-0">
@@ -40,7 +41,7 @@ function RowWithIV({ row, onClick }: { row: ScreenerRow; onClick: () => void }) 
           <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>{row.name}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 flex-shrink-0 relative z-10">
         <div className="text-right">
           <p className="text-sm font-mono font-semibold" style={{ color: 'var(--text)' }}>{fmtPrice(row.price)}</p>
           <div className={`flex items-center gap-0.5 justify-end text-[10px] font-mono ${row.changePct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
