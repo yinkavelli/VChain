@@ -123,7 +123,7 @@ export default function App() {
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className="space-y-3">
               {!selectedTicker ? (
-                <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <div className="p-card p-8 text-center">
                   <Link2 className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--accent)' }} />
                   <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>No ticker selected</p>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Pick a stock from the Screener to view its option chain</p>
@@ -147,7 +147,7 @@ export default function App() {
                 <h2 className="text-lg font-bold mb-0.5" style={{ color: 'var(--text)' }}>Settings</h2>
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Data source & preferences</p>
               </div>
-              <div className="gradient-card p-4 space-y-3">
+              <div className="p-card p-4 space-y-3">
                 <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Data Source</p>
                 <div className="space-y-2 text-xs">
                   {[['Provider','Massive.com'],['Universe',`S&P 500 (${stocks.length} loaded)`]].map(([k,v]) => (
@@ -163,7 +163,7 @@ export default function App() {
                 </div>
               </div>
               {/* Upgrade nudge */}
-              <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg,rgba(245,158,11,0.12) 0%,rgba(13,13,32,0.95) 100%)', border: '1px solid rgba(245,158,11,0.25)' }}>
+              <div className="p-card p-4" style={{ borderColor: 'rgba(245,158,11,0.3)' }}>
                 <p className="text-sm font-semibold text-amber-400 mb-1">Unlock live Bid/Ask</p>
                 <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
                   Upgrade to Massive Developer ($79/mo) to get real-time intraday option quotes. Currently on Starter — option prices show previous day's close only.
@@ -171,7 +171,7 @@ export default function App() {
                 <p className="text-[10px] text-amber-500 font-mono">massive.com/pricing</p>
               </div>
 
-<div className="gradient-card p-4">
+<div className="p-card p-4">
                 <div className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Version</div>
                 <div className="text-xs font-mono" style={{ color: 'var(--accent)' }}>V Chain v1.0.0 · Massive.com Options API</div>
               </div>

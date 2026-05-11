@@ -39,7 +39,7 @@ function OpenCard({ trade, spot, pnl, closing, onClose, onDelete }: { trade: Tra
   const breakevens = trade.strategy_data?.breakevens ?? []
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+    <div className="p-card overflow-hidden">
       <div className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -173,8 +173,8 @@ function ClosedCard({ trade, onDelete }: { trade: Trade; onDelete: (id: string) 
     : null
 
   return (
-    <div className="rounded-xl px-3 py-2.5"
-      style={{ background: 'var(--bg-card)', border: `1px solid ${totalPnL === null ? 'var(--border)' : isProfit ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+    <div className="p-card px-3 py-2.5"
+      style={{ borderColor: totalPnL === null ? undefined : isProfit ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)' }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>{trade.ticker}</span>
@@ -257,8 +257,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
           <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Portfolio</h2>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Simulated trade tracking</p>
         </div>
-        <div className="rounded-2xl p-8 text-center space-y-4"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="p-card p-8 text-center space-y-4">
           <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center"
             style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}>
             <LogIn className="w-6 h-6" style={{ color: 'var(--accent)' }} />
@@ -316,8 +315,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-3 col-span-2"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="p-card p-3 col-span-2">
           <div className="flex justify-between items-start mb-2">
             <div>
               <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>Open exposure (max)</p>
@@ -374,7 +372,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
           { label: 'Open positions', value: open.length,   color: '#6366f1' },
           { label: 'Closed trades',  value: closed.length, color: '#94a3b8' },
         ].map(c => (
-          <div key={c.label} className="rounded-2xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div key={c.label} className="p-card p-3">
             <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>{c.label}</p>
             <p className="text-base font-bold font-mono" style={{ color: c.color }}>{c.value}</p>
           </div>
@@ -395,7 +393,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
 
       {tab === 'open' ? (
         open.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div className="p-card p-8 text-center">
             <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>No open positions</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Book a trade from the Strategy Screener to get started.</p>
           </div>
@@ -410,7 +408,7 @@ export function PortfolioView({ user, spotPrices, onSignIn }: Props) {
         )
       ) : (
         closed.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div className="p-card p-8 text-center">
             <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>No trade history</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Closed trades will appear here.</p>
           </div>

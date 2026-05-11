@@ -112,10 +112,40 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Premium card — use everywhere instead of raw bg-card + border ── */
+.p-card {
+  background: var(--glass-card-bg);
+  border-radius: 20px;
+  border-top: 1px solid var(--card-rim);
+  border-left: 1px solid var(--card-rim);
+  border-right: 1px solid var(--inner-border);
+  border-bottom: 1px solid var(--inner-border);
+  box-shadow: var(--card-shadow);
+  position: relative;
+}
+/* subtle inner gradient shimmer — dark only */
+.dark .p-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.p-card-sm {
+  background: var(--glass-inner-bg);
+  border-radius: 14px;
+  border-top: 1px solid var(--card-rim);
+  border-left: 1px solid var(--card-rim);
+  border-right: 1px solid var(--inner-border);
+  border-bottom: 1px solid var(--inner-border);
+  box-shadow: var(--card-shadow-glow);
+}
 .v-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
+  box-shadow: var(--card-shadow);
 }
 .v-card-alt {
   background: var(--bg-card-alt);
@@ -123,9 +153,10 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   border-radius: 16px;
 }
 .gradient-card {
-  background: linear-gradient(135deg, rgba(14,165,233,0.08) 0%, var(--bg-card) 100%);
+  background: var(--bg-card);
   border: 1px solid var(--border-acc);
   border-radius: 16px;
+  box-shadow: var(--card-shadow);
 }
 .tab-active {
   background: linear-gradient(135deg, #0ea5e9, #06b6d4);

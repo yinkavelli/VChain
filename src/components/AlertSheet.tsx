@@ -49,8 +49,8 @@ export function AlertSheet({ ticker, spot, userId, onClose }: Props) {
 
         {/* Sheet */}
         <motion.div
-          className="relative rounded-t-3xl overflow-hidden"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', maxHeight: '85vh' }}
+          className="p-card relative rounded-t-3xl overflow-hidden"
+          style={{ maxHeight: '85vh' }}
           initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}>
 

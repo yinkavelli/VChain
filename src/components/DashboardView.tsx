@@ -170,7 +170,7 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
 
       {/* Sector performance chart */}
       {sectorData.length > 0 && (
-        <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="p-card p-4">
           <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-sub)' }}>Sector Performance (today)</p>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={sectorData} margin={{ top: 4, right: 4, left: 0, bottom: 28 }}>
@@ -183,9 +183,9 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
                   if (!active || !payload?.length) return null
                   const d = payload[0].payload as { sector: string; fullName: string; avg: number }
                   return (
-                    <div style={{ background: '#0d0d20', border: '1px solid #6366f1', borderRadius: 8, padding: '8px 12px' }}>
-                      <p style={{ color: '#a5b4fc', fontWeight: 600, fontSize: 11, marginBottom: 2 }}>{d.fullName}</p>
-                      <p style={{ color: '#e2e8f0', fontSize: 11 }}>Avg change: {d.avg > 0 ? '+' : ''}{d.avg.toFixed(2)}%</p>
+                    <div style={{ background: 'var(--payoff-tooltip-bg)', border: '1px solid var(--payoff-tooltip-border)', borderRadius: 8, padding: '8px 12px', boxShadow: 'var(--card-shadow-glow)' }}>
+                      <p style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 11, marginBottom: 2 }}>{d.fullName}</p>
+                      <p style={{ color: 'var(--text)', fontSize: 11 }}>Avg change: {d.avg > 0 ? '+' : ''}{d.avg.toFixed(2)}%</p>
                     </div>
                   )
                 }}
@@ -221,8 +221,8 @@ export function DashboardView({ stocks, onSelectTicker }: Props) {
                     initial={{ opacity: 0, x: sign === '+' ? -8 : 8 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.04 }}
                     onClick={() => onSelectTicker(ticker)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl"
-                    style={{ background: 'var(--bg-card)', border: `1px solid ${accent}` }}>
+                    className="p-card-sm w-full flex items-center justify-between px-3 py-2"
+                    style={{ borderColor: accent }}>
                     <div className="text-left">
                       <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{ticker}</p>
                       <p className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{fmtPrice(price)}</p>

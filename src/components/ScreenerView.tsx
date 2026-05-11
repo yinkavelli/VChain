@@ -26,8 +26,7 @@ function RowWithIV({ row, onClick }: { row: ScreenerRow; onClick: () => void }) 
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       onClick={onClick}
-      className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-colors text-left"
-      style={{ background: `linear-gradient(135deg, rgba(99,102,241,0.06) 0%, var(--grad-end) 100%)`, border: '1px solid var(--border)' }}>
+      className="p-card w-full flex items-center justify-between px-4 py-3 transition-colors text-left">
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(14,165,233,0.1)' }}>
@@ -89,15 +88,15 @@ export function ScreenerView({ onSelectTicker }: Props) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search ticker or company…"
-          className="w-full rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}
+          className="p-card w-full rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none"
+          style={{ color: 'var(--text)' }}
         />
       </div>
 
       {/* Sector rolling picker */}
       {/* Sector picker with gradient contrast surround */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,var(--grad-end) 100%)', padding: '1.5px' }}>
-        <div className="rounded-2xl px-3 py-2" style={{ background: 'var(--bg-card)' }}>
+      <div className="p-card px-3 py-2">
+        <div>
           <div className="flex items-center justify-between mb-1 px-1">
             <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>Filter by Sector</p>
             <p className="text-[10px] font-semibold" style={{ color: 'var(--text-sub)' }}>{sector}</p>
@@ -111,7 +110,7 @@ export function ScreenerView({ onSelectTicker }: Props) {
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{filtered.length} stocks · 15-min delayed</p>
         <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
           className="text-[11px] rounded-lg px-2 py-1 focus:outline-none"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-sub)' }}>
+          style={{ background: 'var(--glass-card-bg)', border: '1px solid var(--inner-border)', color: 'var(--text-sub)', borderRadius: 8, boxShadow: 'var(--card-shadow-glow)' }}>
           <option value="changePct">Sort: % Change</option>
           <option value="volume">Sort: Volume</option>
         </select>

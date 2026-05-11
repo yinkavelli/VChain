@@ -84,7 +84,7 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
       </div>
 
       {/* Calls / Puts toggle */}
-      <div className="flex gap-1 p-1 rounded-2xl border border-indigo-900/40" style={{ background: 'var(--bg-card)' }}>
+      <div className="p-card flex gap-1 p-1">
         {(['call', 'put'] as const).map(s => (
           <button key={s} onClick={() => setSide(s)}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${side === s ? 'text-white' : 'text-slate-500'}`}
@@ -99,8 +99,8 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
 
       {/* Expiry rolling picker */}
       {expiries.length > 0 && (
-        <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(124,58,237,0.15) 50%,var(--grad-end) 100%)', padding: '1.5px' }}>
-          <div className="rounded-2xl px-3 py-3 flex items-center gap-2 w-full" style={{ background: 'var(--bg-card)' }}>
+        <div className="p-card px-3 py-3 flex items-center gap-2 w-full">
+          <div className="contents">
             <div className="flex-shrink-0 text-center w-12">
               <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-indigo-400">Expiry</p>
               <p className="text-lg font-bold font-mono text-white">{dte(activeExpiry)}</p>
@@ -120,12 +120,12 @@ export function OptionChainView({ ticker, spotPrice }: Props) {
 
       {/* Chain table */}
       {isLoading ? (
-        <div className="rounded-2xl border border-indigo-900/20 py-12 text-center" style={{ background: 'var(--bg-card)' }}>
+        <div className="p-card py-12 text-center">
           <Loader2 className="w-6 h-6 text-indigo-400 animate-spin mx-auto mb-2" />
           <p className="text-sm text-slate-500">Loading contracts…</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-indigo-900/30 overflow-auto max-h-[62svh] no-scrollbar" style={{ background: 'var(--bg-card)' }}>
+        <div className="p-card overflow-auto max-h-[62svh] no-scrollbar">
           <div style={{ minWidth: 590 }}>
             {/* Header */}
             <div className="flex border-b border-indigo-900/30 sticky top-0 z-20" style={{ background: 'var(--bg-card-alt)', minWidth: 590 }}>
