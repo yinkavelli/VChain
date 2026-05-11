@@ -173,17 +173,25 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   background: var(--glass-card-bg);
   border-radius: 24px;
   position: relative;
-  /* top-rim highlight for 3D lift in both modes */
   border-top: 1px solid var(--card-rim);
+  border-left: 1px solid var(--card-rim);
+  border-right: 1px solid var(--inner-border);
+  border-bottom: 1px solid var(--inner-border);
+  box-shadow: var(--card-shadow);
 }
 .glass-card-inner {
   background: var(--glass-inner-bg);
   border-radius: 20px;
   border-top: 1px solid var(--card-rim-inner);
+  border-left: 1px solid var(--card-rim-inner);
+  border-right: 1px solid var(--inner-border);
+  border-bottom: 1px solid var(--inner-border);
+  box-shadow: var(--card-shadow-glow);
 }
 .metric-glass {
   background: var(--metric-bg);
   border-radius: 14px;
+  border: 1px solid var(--metric-border);
   position: relative;
   overflow: hidden;
 }

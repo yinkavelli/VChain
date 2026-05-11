@@ -151,8 +151,7 @@ function StrategyCard({ s, spot, onTrade }: {
       animate={{ opacity: 1, y: 0 }}
       className="glass-card-inner overflow-hidden"
       style={{
-        border: `1px solid ${tc.border}`,
-        boxShadow: `var(--card-shadow-glow)`,
+        boxShadow: `0 0 0 1px ${tc.border}, var(--card-shadow-glow)`,
         background: `linear-gradient(145deg, ${tc.bg} 0%, var(--card-end) 100%)`,
       }}>
 
@@ -182,7 +181,7 @@ function StrategyCard({ s, spot, onTrade }: {
             { label: 'Max Profit', value: s.maxProfit === Infinity ? '∞' : `$${(s.maxProfit * 100).toFixed(0)}`, color: '#10b981' },
             { label: 'Max Loss',   value: s.maxLoss   === Infinity ? '∞' : `-$${(s.maxLoss * 100).toFixed(0)}`,  color: '#ef4444' },
           ].map(m => (
-            <div key={m.label} className="rounded-xl px-2 py-2.5 text-center" style={{ background: 'var(--metric-bg)', border: '1px solid var(--metric-border)' }}>
+            <div key={m.label} className="metric-glass px-2 py-2.5 text-center">
               <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
               <p className="text-sm font-bold font-mono" style={{ color: m.color }}>{m.value}</p>
             </div>
@@ -431,8 +430,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
       animate={{ opacity: 1, y: 0 }}
       className="glass-card overflow-hidden"
       style={{
-        border: `1px solid ${ac.border}`,
-        boxShadow: `0 0 20px ${ac.glow}, var(--card-shadow)`,
+        boxShadow: `0 0 0 1px ${ac.border}, 0 0 20px ${ac.glow}, var(--card-shadow)`,
       }}>
       {/* Group header — always visible */}
       <button className="w-full text-left px-4 pt-4 pb-3" onClick={() => setOpen(o => !o)}
@@ -493,8 +491,7 @@ function TickerGroup({ ticker, strategies, spot, enrichment, watched, user, aler
         {/* Row 3: metric cards + sparkline */}
         <div className="flex items-center gap-2 mb-3">
           {ivMetrics.map(m => (
-            <div key={m.label} className="metric-glass flex-1 px-3 py-2.5 text-center"
-              style={{ border: `1px solid var(--metric-border)` }}>
+            <div key={m.label} className="metric-glass flex-1 px-3 py-2.5 text-center">
               <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
               <p className="text-sm font-bold font-mono leading-none mb-1" style={{ color: m.color }}>{m.value}</p>
               <p className="text-[8px]" style={{ color: m.color, opacity: 0.7 }}>{m.sub}</p>
