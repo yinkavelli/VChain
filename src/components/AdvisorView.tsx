@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { Send, BrainCircuit, RefreshCw, Trash2, History, X, Share2 } from 'lucide-react'
+import { Send, BrainCircuit, RefreshCw, Trash2, History, X, Share2, Copy, Check } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import type { StrategyScreenResult } from '../hooks/useStrategyScreener'
 import { useAdvisorChats } from '../hooks/useAdvisorChats'
@@ -33,6 +33,25 @@ const SUGGESTIONS = [
   'What sector has the best options edge today?',
   'Size me into 3 trades for a $50k account',
 ]
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <button onClick={handleCopy}
+      className="flex items-center gap-1 mt-2.5 text-[10px] font-medium transition-colors"
+      style={{ color: copied ? '#10b981' : 'var(--text-muted)' }}>
+      {copied
+        ? <><Check className="w-3 h-3" /> Copied</>
+        : <><Copy className="w-3 h-3" /> Copy</>}
+    </button>
+  )
+}
 
 // Parse and render markdown cleanly — no raw ##, **, - syntax shown to user
 function MarcusText({ text }: { text: string }) {
@@ -427,7 +446,10 @@ export function AdvisorView({ strategies, marketMetrics, sectorData, user }: Pro
                 : { background: 'var(--glass-card-bg)', border: '1px solid var(--inner-border)' }}>
               {msg.role === 'user'
                 ? <span style={{ fontSize: 13 }}>{msg.content}</span>
-                : <MarcusText text={msg.content} />}
+                : <>
+                    <MarcusText text={msg.content} />
+                    <CopyButton text={msg.content} />
+                  </>}
             </div>
           </div>
         ))}
