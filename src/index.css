@@ -6,44 +6,50 @@
 
 /* ── Theme variables ────────────────────────────────────────────────── */
 :root {
-  /* Light mode — premium off-white fintech */
-  --bg:           #F4F5F7;
+  /* Light mode — premium solid fintech */
+  --bg:           #EDEEF2;
   --bg-card:      #FFFFFF;
-  --bg-card-alt:  #F8F9FB;
-  --bg-header:    rgba(244,245,247,0.96);
-  --bg-nav:       rgba(244,245,247,0.98);
-  --text:         #111827;
-  --text-sub:     #374151;
-  --text-muted:   #9CA3AF;
-  --border:       rgba(99,102,241,0.1);
-  --border-acc:   rgba(99,102,241,0.2);
+  --bg-card-alt:  #F3F4F7;
+  --bg-header:    rgba(237,238,242,0.97);
+  --bg-nav:       rgba(237,238,242,0.98);
+  --text:         #0A0E1A;
+  --text-sub:     #1C2333;
+  --text-muted:   #5C6680;
+  --border:       rgba(99,102,241,0.14);
+  --border-acc:   rgba(99,102,241,0.22);
   --accent:       #6366f1;
-  --accent-glow:  rgba(99,102,241,0.12);
-  --grad-end:     rgba(255,255,255,0.92);
+  --accent-glow:  rgba(99,102,241,0.15);
+  --grad-end:     #FFFFFF;
 
-  /* ── Glass / card system — light ─────── */
-  --glass-card-bg:      rgba(255,255,255,0.88);
-  --glass-card-shine:   rgba(255,255,255,0.95);
-  --glass-inner-bg:     rgba(255,255,255,0.72);
-  --metric-bg:          rgba(248,249,251,0.95);
-  --metric-border:      rgba(0,0,0,0.07);
-  --inner-border:       rgba(0,0,0,0.055);
-  --inner-border-acc:   rgba(0,0,0,0.09);
-  --news-bg:            rgba(248,249,251,0.85);
-  --news-border:        rgba(0,0,0,0.055);
-  --card-end:           rgba(255,255,255,0.93);
-  --card-shadow:        0 2px 20px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,1);
-  --card-shadow-glow:   0 2px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
-  --btn-inactive-bg:    rgba(0,0,0,0.04);
+  /* ── Card system — light solid ─────── */
+  --glass-card-bg:      #FFFFFF;
+  --glass-card-shine:   rgba(255,255,255,1);
+  --glass-inner-bg:     #F7F8FA;
+  --metric-bg:          #F0F1F5;
+  --metric-border:      rgba(0,0,0,0.08);
+  --inner-border:       rgba(0,0,0,0.07);
+  --inner-border-acc:   rgba(0,0,0,0.1);
+  --news-bg:            #F7F8FA;
+  --news-border:        rgba(0,0,0,0.07);
+  --card-end:           #FFFFFF;
+  /* 3D depth: top-edge highlight + base shadow + ambient lift */
+  --card-shadow:        0 1px 0 rgba(255,255,255,0.9) inset,
+                        0 -1px 0 rgba(0,0,0,0.06) inset,
+                        0 1px 3px rgba(0,0,0,0.07),
+                        0 6px 20px rgba(0,0,0,0.09);
+  --card-shadow-glow:   0 1px 0 rgba(255,255,255,0.9) inset,
+                        0 1px 4px rgba(0,0,0,0.07),
+                        0 4px 14px rgba(0,0,0,0.08);
+  --btn-inactive-bg:    #EDEEF2;
   --btn-inactive-border:rgba(0,0,0,0.1);
-  --btn-inactive-text:  #6B7280;
-  --strategy-card-bg:   rgba(255,255,255,0.75);
+  --btn-inactive-text:  #3D4460;
+  --strategy-card-bg:   #FFFFFF;
   --payoff-tooltip-bg:  #FFFFFF;
-  --payoff-tooltip-border:#E5E7EB;
+  --payoff-tooltip-border:#D1D5DB;
   --sell-leg-bg:        rgba(239,68,68,0.08);
-  --sell-leg-text:      #DC2626;
+  --sell-leg-text:      #B91C1C;
   --buy-leg-bg:         rgba(16,185,129,0.08);
-  --buy-leg-text:       #059669;
+  --buy-leg-text:       #047857;
   --score-ring-track:   rgba(0,0,0,0.1);
 }
 
@@ -123,27 +129,29 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
 .v-text-sub { color: var(--text-sub); }
 .v-text-muted { color: var(--text-muted); }
 
-/* ── Glass card system ──────────────────────────────────────────────── */
+/* ── Card system ────────────────────────────────────────────────────── */
 .glass-card {
   background: var(--glass-card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
   position: relative;
 }
-.glass-card::before {
+/* Dark mode only: glass shine overlay */
+.dark .glass-card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(145deg, var(--glass-card-shine) 0%, transparent 55%);
-  opacity: 0.5;
+  background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, transparent 55%);
   pointer-events: none;
+}
+/* Dark mode only: backdrop blur */
+.dark .glass-card,
+.dark .glass-card-inner {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .glass-card-inner {
   background: var(--glass-inner-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   border-radius: 20px;
 }
 .metric-glass {
@@ -152,11 +160,11 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   position: relative;
   overflow: hidden;
 }
-.metric-glass::after {
+/* Dark mode only: top shine line on metric panels */
+.dark .metric-glass::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--glass-card-shine), transparent);
-  opacity: 0.6;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
 }
