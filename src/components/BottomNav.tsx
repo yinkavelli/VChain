@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, Link2, Briefcase, Settings, Zap } from 'lucide-react'
+import { LayoutDashboard, Search, Link2, Briefcase, BrainCircuit, Zap } from 'lucide-react'
 
 const TABS = [
   { id: 'dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
@@ -6,7 +6,7 @@ const TABS = [
   { id: 'strategies', label: 'Screener',   icon: Zap             },
   { id: 'chains',     label: 'Chains',     icon: Link2           },
   { id: 'portfolio',  label: 'Portfolio',  icon: Briefcase       },
-  { id: 'settings',   label: 'Settings',   icon: Settings        },
+  { id: 'advisor',    label: 'Advisor',    icon: BrainCircuit    },
 ]
 
 export function BottomNav({ active, onChange }: { active: string; onChange: (t: string) => void }) {
@@ -17,11 +17,17 @@ export function BottomNav({ active, onChange }: { active: string; onChange: (t: 
         {TABS.map(t => {
           const Icon = t.icon
           const active_ = active === t.id
+          const isAdvisor = t.id === 'advisor'
           return (
             <button key={t.id} onClick={() => onChange(t.id)}
               className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors">
-              <Icon className="w-5 h-5" style={{ color: active_ ? 'var(--accent)' : 'var(--text-muted)' }} />
-              <span className="text-[10px] font-medium" style={{ color: active_ ? 'var(--accent)' : 'var(--text-muted)' }}>
+              <Icon className="w-5 h-5" style={{
+                color: active_ ? (isAdvisor ? '#7c3aed' : 'var(--accent)') : 'var(--text-muted)',
+                filter: active_ && isAdvisor ? 'drop-shadow(0 0 6px rgba(124,58,237,0.6))' : 'none',
+              }} />
+              <span className="text-[10px] font-medium" style={{
+                color: active_ ? (isAdvisor ? '#7c3aed' : 'var(--accent)') : 'var(--text-muted)',
+              }}>
                 {t.label}
               </span>
             </button>

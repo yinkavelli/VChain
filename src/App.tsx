@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RefreshCw, Link2, LogIn, LogOut, Sun, Moon } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { RefreshCw, Link2, LogIn, LogOut, Sun, Moon, Settings } from 'lucide-react'
+import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTheme } from './hooks/useTheme'
 import { BottomNav } from './components/BottomNav'
 import { Ticker } from './components/Ticker'
@@ -10,9 +10,12 @@ import { ScreenerView } from './components/ScreenerView'
 import { OptionChainView } from './components/OptionChainView'
 import { StrategyScreener } from './components/StrategyScreener'
 import { PortfolioView } from './components/PortfolioView'
+import { AdvisorView } from './components/AdvisorView'
 import { TradeModal } from './components/TradeModal'
 import { useScreener } from './hooks/useScreener'
 import { useAuth } from './hooks/useAuth'
+import { useStrategyScreener } from './hooks/useStrategyScreener'
+import { fetchStockSnapshots } from './lib/massiveApi'
 import type { StrategyScreenResult } from './hooks/useStrategyScreener'
 
 export default function App() {
@@ -27,6 +30,31 @@ export default function App() {
   const { data: stocks = [], isLoading } = useScreener()
   const spotPrice  = stocks.find(r => r.ticker === selectedTicker)?.price ?? 0
   const spotPrices = Object.fromEntries(stocks.map(s => [s.ticker, s.price]))
+
+  // Advisor context — market metrics + strategies
+  const { data: allStrategies = [] } = useStrategyScreener(spotPrices, 'All', 50)
+  const { data: benchmarks } = useQuery({
+    queryKey: ['benchmarks'],
+    queryFn: () => fetchStockSnapshots(['SPY', 'QQQ', 'IWM']),
+    staleTime: 5 * 60_000,
+  })
+  const advisorMarketMetrics = useMemo(() => {
+    const advancers   = stocks.filter(s => s.changePct > 0).length
+    const decliners   = stocks.filter(s => s.changePct < 0).length
+    const avgChange   = stocks.length ? stocks.reduce((s, r) => s + r.changePct, 0) / stocks.length : 0
+    const sentiment   = avgChange > 0.5 ? 'Bullish' : avgChange < -0.5 ? 'Bearish' : 'Neutral'
+    const spyChange   = benchmarks?.get('SPY')?.todaysChangePerc ?? null
+    return { sentiment, avgChange: +avgChange.toFixed(2), advDecRatio: decliners > 0 ? (advancers / decliners).toFixed(2) : '—', advancers, decliners, spyChange }
+  }, [stocks, benchmarks])
+  const advisorSectorData = useMemo(() => {
+    const map = new Map<string, { total: number; count: number }>()
+    for (const s of stocks) {
+      const cur = map.get(s.sector) ?? { total: 0, count: 0 }
+      map.set(s.sector, { total: cur.total + s.changePct, count: cur.count + 1 })
+    }
+    const abbrev: Record<string, string> = { 'Information Technology': 'Tech', 'Consumer Discretionary': 'Disc.', 'Consumer Staples': 'Staples', 'Communication Services': 'Comm.', 'Health Care': 'Health', 'Real Estate': 'RE', 'Financials': 'Finance', 'Industrials': 'Indust.' }
+    return [...map.entries()].map(([sector, { total, count }]) => ({ sector: abbrev[sector] ?? sector.split(' ')[0], avg: +(total / count).toFixed(2) })).sort((a, b) => b.avg - a.avg)
+  }, [stocks])
 
   function handleRefresh() {
     setRefreshing(true)
@@ -79,6 +107,12 @@ export default function App() {
                 <LogIn className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
               </button>
             )}
+            <button onClick={() => setActiveTab('settings')}
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: activeTab === 'settings' ? 'rgba(99,102,241,0.12)' : 'var(--bg-card-alt)', border: `1px solid ${activeTab === 'settings' ? 'rgba(99,102,241,0.3)' : 'var(--border)'}` }}
+              title="Settings">
+              <Settings className="w-3.5 h-3.5" style={{ color: activeTab === 'settings' ? 'var(--accent)' : 'var(--text-sub)' }} />
+            </button>
 <button onClick={toggleTheme}
               className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
               style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}
@@ -137,6 +171,16 @@ export default function App() {
             <motion.div key="portfolio"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
               <PortfolioView user={user} spotPrices={spotPrices} onSignIn={signInWithGoogle} />
+            </motion.div>
+          )}
+          {activeTab === 'advisor' && (
+            <motion.div key="advisor"
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              <AdvisorView
+                strategies={allStrategies}
+                marketMetrics={advisorMarketMetrics}
+                sectorData={advisorSectorData}
+              />
             </motion.div>
           )}
           {activeTab === 'settings' && (
