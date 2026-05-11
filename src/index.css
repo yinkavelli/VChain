@@ -6,93 +6,101 @@
 
 /* ── Theme variables ────────────────────────────────────────────────── */
 :root {
-  /* Light mode — premium solid fintech */
-  --bg:           #EDEEF2;
+  /* Light mode — high-contrast premium fintech */
+  --bg:           #D8DAE5;
   --bg-card:      #FFFFFF;
-  --bg-card-alt:  #F3F4F7;
-  --bg-header:    rgba(237,238,242,0.97);
-  --bg-nav:       rgba(237,238,242,0.98);
-  --text:         #0A0E1A;
-  --text-sub:     #1C2333;
-  --text-muted:   #5C6680;
+  --bg-card-alt:  #EEF0F6;
+  --bg-header:    rgba(216,218,229,0.97);
+  --bg-nav:       rgba(216,218,229,0.98);
+  --text:         #080C18;
+  --text-sub:     #1A2035;
+  --text-muted:   #525A78;
   --border:       rgba(99,102,241,0.14);
   --border-acc:   rgba(99,102,241,0.22);
   --accent:       #6366f1;
-  --accent-glow:  rgba(99,102,241,0.15);
+  --accent-glow:  rgba(99,102,241,0.18);
   --grad-end:     #FFFFFF;
 
-  /* ── Card system — light solid ─────── */
+  /* ── Card system — light 3D solid ─────── */
   --glass-card-bg:      #FFFFFF;
-  --glass-card-shine:   rgba(255,255,255,1);
-  --glass-inner-bg:     #F7F8FA;
-  --metric-bg:          #F0F1F5;
-  --metric-border:      rgba(0,0,0,0.08);
-  --inner-border:       rgba(0,0,0,0.07);
-  --inner-border-acc:   rgba(0,0,0,0.1);
-  --news-bg:            #F7F8FA;
-  --news-border:        rgba(0,0,0,0.07);
+  --glass-inner-bg:     #F2F4F8;
+  --metric-bg:          #E8EAF2;
+  --metric-border:      rgba(0,0,0,0.09);
+  --inner-border:       rgba(0,0,0,0.08);
+  --inner-border-acc:   rgba(0,0,0,0.11);
+  --news-bg:            #F2F4F8;
+  --news-border:        rgba(0,0,0,0.08);
   --card-end:           #FFFFFF;
-  /* 3D depth: top-edge highlight + base shadow + ambient lift */
-  --card-shadow:        0 1px 0 rgba(255,255,255,0.9) inset,
+  /* 3D: bright top-edge + right shadow ledge + deep ambient */
+  --card-shadow:        0 1px 0 rgba(255,255,255,1) inset,
+                        0 -1px 0 rgba(0,0,0,0.07) inset,
+                        0 1px 2px rgba(0,0,0,0.08),
+                        0 4px 8px rgba(0,0,0,0.08),
+                        0 12px 28px rgba(0,0,0,0.1);
+  --card-shadow-glow:   0 1px 0 rgba(255,255,255,1) inset,
                         0 -1px 0 rgba(0,0,0,0.06) inset,
-                        0 1px 3px rgba(0,0,0,0.07),
-                        0 6px 20px rgba(0,0,0,0.09);
-  --card-shadow-glow:   0 1px 0 rgba(255,255,255,0.9) inset,
-                        0 1px 4px rgba(0,0,0,0.07),
-                        0 4px 14px rgba(0,0,0,0.08);
-  --btn-inactive-bg:    #EDEEF2;
+                        0 2px 6px rgba(0,0,0,0.07),
+                        0 8px 20px rgba(0,0,0,0.09);
+  --btn-inactive-bg:    #E8EAF2;
   --btn-inactive-border:rgba(0,0,0,0.1);
-  --btn-inactive-text:  #3D4460;
+  --btn-inactive-text:  #3A4260;
   --strategy-card-bg:   #FFFFFF;
   --payoff-tooltip-bg:  #FFFFFF;
-  --payoff-tooltip-border:#D1D5DB;
-  --sell-leg-bg:        rgba(239,68,68,0.08);
+  --payoff-tooltip-border:#C8CADE;
+  --sell-leg-bg:        rgba(239,68,68,0.09);
   --sell-leg-text:      #B91C1C;
-  --buy-leg-bg:         rgba(16,185,129,0.08);
+  --buy-leg-bg:         rgba(16,185,129,0.09);
   --buy-leg-text:       #047857;
-  --score-ring-track:   rgba(0,0,0,0.1);
+  --score-ring-track:   rgba(0,0,0,0.12);
 }
 
 .dark {
-  /* Dark mode — premium fintech */
-  --bg:           #060610;
-  --bg-card:      #0e0e1f;
-  --bg-card-alt:  #0a0a18;
-  --bg-header:    rgba(6,6,16,0.97);
-  --bg-nav:       rgba(6,6,16,0.98);
-  --text:         #f0f4ff;
-  --text-sub:     #94a3b8;
-  --text-muted:   #4a5568;
-  --border:       rgba(99,102,241,0.12);
-  --border-acc:   rgba(99,102,241,0.25);
+  /* Dark mode — high-contrast premium fintech */
+  --bg:           #02020A;
+  --bg-card:      #111128;
+  --bg-card-alt:  #0C0C1E;
+  --bg-header:    rgba(2,2,10,0.97);
+  --bg-nav:       rgba(2,2,10,0.98);
+  --text:         #F0F4FF;
+  --text-sub:     #94A3B8;
+  --text-muted:   #4A5568;
+  --border:       rgba(99,102,241,0.14);
+  --border-acc:   rgba(99,102,241,0.28);
   --accent:       #6366f1;
   --accent-glow:  rgba(99,102,241,0.35);
-  --grad-end:     rgba(10,10,28,0.98);
+  --grad-end:     #0D0D22;
 
-  /* ── Glass / card system — dark ─────── */
-  --glass-card-bg:      rgba(255,255,255,0.045);
-  --glass-card-shine:   rgba(255,255,255,0.07);
-  --glass-inner-bg:     rgba(255,255,255,0.035);
-  --metric-bg:          rgba(255,255,255,0.05);
+  /* ── Card system — dark 3D ─────── */
+  --glass-card-bg:      #131326;
+  --glass-inner-bg:     #0E0E20;
+  --metric-bg:          #0A0A1C;
   --metric-border:      rgba(255,255,255,0.07);
   --inner-border:       rgba(255,255,255,0.05);
   --inner-border-acc:   rgba(255,255,255,0.08);
-  --news-bg:            rgba(255,255,255,0.02);
+  --news-bg:            #0A0A1C;
   --news-border:        rgba(255,255,255,0.05);
-  --card-end:           rgba(8,8,20,0.96);
-  --card-shadow:        0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
-  --card-shadow-glow:   0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-  --btn-inactive-bg:    rgba(255,255,255,0.04);
-  --btn-inactive-border:rgba(255,255,255,0.08);
-  --btn-inactive-text:  #4a5568;
-  --strategy-card-bg:   rgba(8,8,20,0.95);
+  --card-end:           #0D0D22;
+  /* 3D: bright top rim + deep bottom shadow + ambient */
+  --card-shadow:        0 1px 0 rgba(255,255,255,0.07) inset,
+                        0 -1px 0 rgba(0,0,0,0.5) inset,
+                        0 2px 4px rgba(0,0,0,0.4),
+                        0 8px 24px rgba(0,0,0,0.55),
+                        0 20px 48px rgba(0,0,0,0.35);
+  --card-shadow-glow:   0 1px 0 rgba(255,255,255,0.06) inset,
+                        0 -1px 0 rgba(0,0,0,0.4) inset,
+                        0 4px 16px rgba(0,0,0,0.45),
+                        0 12px 32px rgba(0,0,0,0.4);
+  --btn-inactive-bg:    rgba(255,255,255,0.05);
+  --btn-inactive-border:rgba(255,255,255,0.09);
+  --btn-inactive-text:  #4A5568;
+  --strategy-card-bg:   #0D0D22;
   --payoff-tooltip-bg:  #0d0d20;
   --payoff-tooltip-border:#1e1e3f;
   --sell-leg-bg:        rgba(127,29,29,0.5);
   --sell-leg-text:      #fca5a5;
   --buy-leg-bg:         rgba(6,78,59,0.5);
   --buy-leg-text:       #6ee7b7;
-  --score-ring-track:   rgba(180,185,200,0.25);
+  --score-ring-track:   rgba(180,185,200,0.2);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */
@@ -134,25 +142,13 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   background: var(--glass-card-bg);
   border-radius: 24px;
   position: relative;
-}
-/* Dark mode only: glass shine overlay */
-.dark .glass-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, transparent 55%);
-  pointer-events: none;
-}
-/* Dark mode only: backdrop blur */
-.dark .glass-card,
-.dark .glass-card-inner {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* top-rim highlight for 3D lift in both modes */
+  border-top: 1px solid var(--card-rim);
 }
 .glass-card-inner {
   background: var(--glass-inner-bg);
   border-radius: 20px;
+  border-top: 1px solid var(--card-rim-inner);
 }
 .metric-glass {
   background: var(--metric-bg);
@@ -160,11 +156,22 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter
   position: relative;
   overflow: hidden;
 }
-/* Dark mode only: top shine line on metric panels */
-.dark .metric-glass::after {
+
+/* Light mode rim colors */
+:root {
+  --card-rim:       rgba(255,255,255,1);
+  --card-rim-inner: rgba(255,255,255,0.8);
+}
+/* Dark mode rim + subtle inner glow */
+.dark {
+  --card-rim:       rgba(255,255,255,0.08);
+  --card-rim-inner: rgba(255,255,255,0.05);
+}
+.dark .glass-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
 }
